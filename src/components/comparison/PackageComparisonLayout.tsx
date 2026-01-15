@@ -1,9 +1,9 @@
 import { Box, Flex, ScrollArea, Stack } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { usePackageColumn } from "@/hooks/usePackageColumn";
 import { usePackageComparison } from "@/hooks/usePackageComparison";
+import type { PackageColumnState } from "@/hooks/usePackageColumn";
 import { PackageColumn } from "./PackageColumn";
-import { AddColumnButton } from "./AddColumnButton";
+import { EmptyState } from "./EmptyState";
 
 const MOBILE_BREAKPOINT = 1024;
 
@@ -54,26 +54,26 @@ function calculateWinnerMetrics(
   return winners;
 }
 
-export function PackageComparisonLayout() {
-  const {
-    columns,
-    addColumn,
-    removeColumn,
-    updateColumn,
-    canAddMore,
-    canRemove,
-  } = usePackageColumn();
+interface PackageComparisonLayoutProps {
+  packages: PackageColumnState[];
+  removePackage: (id: string) => void;
+  canRemove: boolean;
+}
 
-  // Extract package names from submitted values (not current typing)
-  const packageNames = columns
-    .map((col) => col.submittedValue)
-    .filter((name) => name.trim().length > 0);
+export function PackageComparisonLayout({
+  packages: packageColumns,
+  removePackage,
+  canRemove,
+}: PackageComparisonLayoutProps) {
+  // Extract package names for data fetching
+  const packageNames = packageColumns.map((pkg) => pkg.packageName);
 
   // Fetch package data
-  const { isLoading, packages } = usePackageComparison(packageNames);
+  const { isLoading, packages: packagesData } =
+    usePackageComparison(packageNames);
 
   // Calculate winner metrics
-  const validPackages = packages.filter((pkg) =>
+  const validPackages = packagesData.filter((pkg) =>
     packageNames.includes(pkg.name),
   );
   const winnerMetrics = calculateWinnerMetrics(
@@ -94,6 +94,11 @@ export function PackageComparisonLayout() {
 
   const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
 
+  // Show empty state when no packages added
+  if (packageColumns.length === 0) {
+    return <EmptyState />;
+  }
+
   if (isMobile) {
     // Mobile layout: Horizontal scroll
     return (
@@ -104,43 +109,29 @@ export function PackageComparisonLayout() {
             justify="center"
             style={{ minWidth: "min-content", paddingBottom: "16px" }}
           >
-            {columns.map((col) => {
-              const packageName = col.submittedValue.trim();
+            {packageColumns.map((pkg) => {
               const packageStats =
-                packageName && packageNames.includes(packageName)
-                  ? (packages.find((p) => p.name === packageName) ?? null)
-                  : null;
+                packagesData.find((p) => p.name === pkg.packageName) ?? null;
 
               return (
                 <Box
-                  key={col.id}
+                  key={pkg.id}
                   style={{ minWidth: "280px", flexShrink: 0, width: "280px" }}
                 >
                   <PackageColumn
-                    columnState={col}
-                    index={columns.indexOf(col)}
+                    packageName={pkg.packageName}
                     packageStats={packageStats}
-                    isLoading={isLoading && !!packageName}
+                    isLoading={isLoading}
                     showRemove={canRemove}
-                    winnerMetrics={
-                      packageName ? winnerMetrics[packageName] : undefined
-                    }
-                    onUpdate={(updates) => {
-                      updateColumn(col.id, updates);
-                    }}
+                    winnerMetrics={winnerMetrics[pkg.packageName]}
                     onRemove={() => {
-                      removeColumn(col.id);
+                      removePackage(pkg.id);
                     }}
                   />
                 </Box>
               );
             })}
           </Flex>
-          <AddColumnButton
-            onClick={addColumn}
-            disabled={!canAddMore}
-            currentColumnCount={columns.length}
-          />
         </ScrollArea.Autosize>
       </Stack>
     );
@@ -149,56 +140,33 @@ export function PackageComparisonLayout() {
   // Desktop layout: Horizontal scroll with centered columns
   return (
     <Stack gap="xl">
-      <Box pos="relative">
-        <ScrollArea.Autosize type="scroll" offsetScrollbars>
-          <Flex
-            gap="xl"
-            justify="center"
-            style={{ minWidth: "min-content", paddingBottom: "16px" }}
-          >
-            {columns.map((col) => {
-              const packageName = col.submittedValue.trim();
-              const packageStats =
-                packageName && packageNames.includes(packageName)
-                  ? (packages.find((p) => p.name === packageName) ?? null)
-                  : null;
-
-              return (
-                <Box key={col.id} style={{ width: "350px", flexShrink: 0 }}>
-                  <PackageColumn
-                    columnState={col}
-                    index={columns.indexOf(col)}
-                    packageStats={packageStats}
-                    isLoading={isLoading && !!packageName}
-                    showRemove={canRemove}
-                    winnerMetrics={
-                      packageName ? winnerMetrics[packageName] : undefined
-                    }
-                    onUpdate={(updates) => {
-                      updateColumn(col.id, updates);
-                    }}
-                    onRemove={() => {
-                      removeColumn(col.id);
-                    }}
-                  />
-                </Box>
-              );
-            })}
-          </Flex>
-        </ScrollArea.Autosize>
-        <Box
-          pos="absolute"
-          right="0"
-          top="50%"
-          style={{ transform: "translateY(-50%)" }}
+      <ScrollArea.Autosize type="scroll" offsetScrollbars>
+        <Flex
+          gap="xl"
+          justify="center"
+          style={{ minWidth: "min-content", paddingBottom: "16px" }}
         >
-          <AddColumnButton
-            onClick={addColumn}
-            disabled={!canAddMore}
-            currentColumnCount={columns.length}
-          />
-        </Box>
-      </Box>
+          {packageColumns.map((pkg) => {
+            const packageStats =
+              packagesData.find((p) => p.name === pkg.packageName) ?? null;
+
+            return (
+              <Box key={pkg.id} style={{ width: "350px", flexShrink: 0 }}>
+                <PackageColumn
+                  packageName={pkg.packageName}
+                  packageStats={packageStats}
+                  isLoading={isLoading}
+                  showRemove={canRemove}
+                  winnerMetrics={winnerMetrics[pkg.packageName]}
+                  onRemove={() => {
+                    removePackage(pkg.id);
+                  }}
+                />
+              </Box>
+            );
+          })}
+        </Flex>
+      </ScrollArea.Autosize>
     </Stack>
   );
 }

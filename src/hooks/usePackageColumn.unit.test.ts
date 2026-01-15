@@ -1,161 +1,166 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { usePackageColumn } from "./usePackageColumn";
 
+// Mock @mantine/notifications
+vi.mock("@mantine/notifications", () => ({
+  notifications: {
+    show: vi.fn(),
+  },
+}));
+
 describe("usePackageColumn", () => {
-  it("initializes with 1 empty column", () => {
-    const { result } = renderHook(() => usePackageColumn());
-
-    expect(result.current.columns).toHaveLength(1);
-    expect(result.current.columns[0].value).toBe("");
-    expect(result.current.columns[0].searchQuery).toBe("");
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Clear URL params before each test
+    window.history.replaceState({}, "", "/");
   });
 
-  it("initializes columns with unique IDs", () => {
+  it("initializes with empty packages array", () => {
     const { result } = renderHook(() => usePackageColumn());
 
-    const ids = result.current.columns.map((col) => col.id);
-    expect(new Set(ids).size).toBe(1);
-  });
-
-  it("can add columns up to MAX_PACKAGES (6)", () => {
-    const { result } = renderHook(() => usePackageColumn());
-
-    // Start with 1 column
-    expect(result.current.columns).toHaveLength(1);
-    expect(result.current.canAddMore).toBe(true);
-
-    // Add 5 more columns
-    act(() => {
-      result.current.addColumn();
-      result.current.addColumn();
-      result.current.addColumn();
-      result.current.addColumn();
-      result.current.addColumn();
-    });
-
-    // Should have 6 columns total
-    expect(result.current.columns).toHaveLength(6);
-    expect(result.current.canAddMore).toBe(false);
-
-    // Try to add one more (should be ignored)
-    act(() => {
-      result.current.addColumn();
-    });
-
-    expect(result.current.columns).toHaveLength(6);
-  });
-
-  it("can remove columns down to MIN_PACKAGES (1)", () => {
-    const { result } = renderHook(() => usePackageColumn());
-
-    // Add 2 more columns to have 3 total
-    act(() => {
-      result.current.addColumn();
-      result.current.addColumn();
-    });
-
-    expect(result.current.columns).toHaveLength(3);
-    expect(result.current.canRemove).toBe(true);
-
-    // Remove 2 columns
-    const idsToRemove = result.current.columns.slice(1).map((col) => col.id);
-    act(() => {
-      idsToRemove.forEach((id) => {
-        result.current.removeColumn(id);
-      });
-    });
-
-    expect(result.current.columns).toHaveLength(1);
+    expect(result.current.packages).toHaveLength(0);
     expect(result.current.canRemove).toBe(false);
-
-    // Try to remove one more (should be ignored)
-    const remainingId = result.current.columns[0].id;
-    act(() => {
-      result.current.removeColumn(remainingId);
-    });
-
-    expect(result.current.columns).toHaveLength(1);
   });
 
-  it("can update column values", () => {
+  it("can add packages", () => {
     const { result } = renderHook(() => usePackageColumn());
 
-    const columnId = result.current.columns[0].id;
-
     act(() => {
-      result.current.updateColumn(columnId, {
-        value: "react",
-        searchQuery: "react",
-      });
+      result.current.addPackage("react");
     });
 
-    expect(result.current.columns[0].value).toBe("react");
-    expect(result.current.columns[0].searchQuery).toBe("react");
+    expect(result.current.packages).toHaveLength(1);
+    expect(result.current.packages[0].packageName).toBe("react");
+    expect(result.current.canRemove).toBe(true);
   });
 
-  it("can update partial column values", () => {
+  it("trims whitespace from package names", () => {
     const { result } = renderHook(() => usePackageColumn());
 
-    const columnId = result.current.columns[0].id;
-
     act(() => {
-      result.current.updateColumn(columnId, { value: "vue" });
+      result.current.addPackage("  react  ");
     });
 
-    expect(result.current.columns[0].value).toBe("vue");
-    expect(result.current.columns[0].searchQuery).toBe(""); // unchanged
+    expect(result.current.packages[0].packageName).toBe("react");
   });
 
-  it("removes the correct column by ID", () => {
+  it("ignores empty package names", () => {
     const { result } = renderHook(() => usePackageColumn());
 
-    const initialIds = result.current.columns.map((col) => col.id);
-
-    // Add 2 columns
     act(() => {
-      result.current.addColumn();
-      result.current.addColumn();
+      result.current.addPackage("");
+      result.current.addPackage("   ");
     });
 
-    const newColumnId1 = result.current.columns[1].id;
-    const newColumnId2 = result.current.columns[2].id;
-    expect(result.current.columns).toHaveLength(3);
+    expect(result.current.packages).toHaveLength(0);
+  });
 
-    // Remove the middle column
+  it("prevents duplicate packages (case-insensitive)", () => {
+    const { result } = renderHook(() => usePackageColumn());
+
     act(() => {
-      result.current.removeColumn(newColumnId1);
+      result.current.addPackage("react");
     });
 
-    expect(result.current.columns).toHaveLength(2);
-    expect(result.current.columns.map((col) => col.id)).toEqual([
-      initialIds[0],
-      newColumnId2,
+    act(() => {
+      result.current.addPackage("React");
+    });
+
+    act(() => {
+      result.current.addPackage("REACT");
+    });
+
+    expect(result.current.packages).toHaveLength(1);
+    expect(result.current.packages[0].packageName).toBe("react");
+  });
+
+  it("can add multiple unique packages", () => {
+    const { result } = renderHook(() => usePackageColumn());
+
+    act(() => {
+      result.current.addPackage("react");
+      result.current.addPackage("vue");
+      result.current.addPackage("angular");
+    });
+
+    expect(result.current.packages).toHaveLength(3);
+    expect(result.current.packages.map((p) => p.packageName)).toEqual([
+      "react",
+      "vue",
+      "angular",
     ]);
   });
 
-  it("maintains column order when adding", () => {
+  it("can remove packages", () => {
     const { result } = renderHook(() => usePackageColumn());
 
-    const initialIds = result.current.columns.map((col) => col.id);
-
     act(() => {
-      result.current.addColumn();
+      result.current.addPackage("react");
+      result.current.addPackage("vue");
     });
 
-    expect(result.current.columns[0].id).toBe(initialIds[0]);
-    expect(result.current.columns[1].id).not.toBe(initialIds[0]);
+    expect(result.current.packages).toHaveLength(2);
+
+    const reactId = result.current.packages[0].id;
+    act(() => {
+      result.current.removePackage(reactId);
+    });
+
+    expect(result.current.packages).toHaveLength(1);
+    expect(result.current.packages[0].packageName).toBe("vue");
   });
 
-  it("preserves other columns when updating one", () => {
+  it("can remove all packages", () => {
     const { result } = renderHook(() => usePackageColumn());
 
-    const firstColumnId = result.current.columns[0].id;
-
     act(() => {
-      result.current.updateColumn(firstColumnId, { value: "react" });
+      result.current.addPackage("react");
+      result.current.addPackage("vue");
     });
 
-    expect(result.current.columns[0].value).toBe("react");
+    const ids = result.current.packages.map((p) => p.id);
+    act(() => {
+      ids.forEach((id) => {
+        result.current.removePackage(id);
+      });
+    });
+
+    expect(result.current.packages).toHaveLength(0);
+    expect(result.current.canRemove).toBe(false);
+  });
+
+  it("generates unique IDs for each package", () => {
+    const { result } = renderHook(() => usePackageColumn());
+
+    act(() => {
+      result.current.addPackage("react");
+      result.current.addPackage("vue");
+      result.current.addPackage("angular");
+    });
+
+    const ids = result.current.packages.map((p) => p.id);
+    expect(new Set(ids).size).toBe(3);
+  });
+
+  it("removes the correct package by ID", () => {
+    const { result } = renderHook(() => usePackageColumn());
+
+    act(() => {
+      result.current.addPackage("react");
+      result.current.addPackage("vue");
+      result.current.addPackage("angular");
+    });
+
+    const vueId = result.current.packages[1].id;
+    act(() => {
+      result.current.removePackage(vueId);
+    });
+
+    expect(result.current.packages).toHaveLength(2);
+    expect(result.current.packages.map((p) => p.packageName)).toEqual([
+      "react",
+      "angular",
+    ]);
   });
 });

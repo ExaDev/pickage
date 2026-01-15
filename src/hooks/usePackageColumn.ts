@@ -1,104 +1,90 @@
 import { useState, useEffect, useMemo } from "react";
+import { notifications } from "@mantine/notifications";
 import { getInitialPackagesFromUrl, updateUrlWithPackages } from "./useUrlSync";
 
-const MAX_PACKAGES = 6;
-const MIN_PACKAGES = 1;
+// No minimum - users can have 0 packages (shows empty state)
 
 /**
- * Create initial columns from URL packages or default empty column
+ * Create initial packages from URL or empty array
  */
-function createInitialColumns(): PackageColumnState[] {
+function createInitialPackages(): PackageColumnState[] {
   const urlPackages = getInitialPackagesFromUrl();
 
   if (urlPackages.length === 0) {
-    return [
-      {
-        id: crypto.randomUUID(),
-        value: "",
-        searchQuery: "",
-        submittedValue: "",
-      },
-    ];
+    return [];
   }
 
-  // Create columns for each URL package (up to MAX_PACKAGES)
-  return urlPackages.slice(0, MAX_PACKAGES).map((packageName) => ({
+  return urlPackages.map((packageName) => ({
     id: crypto.randomUUID(),
-    value: packageName,
-    searchQuery: "",
-    submittedValue: packageName,
+    packageName,
   }));
 }
 
 export interface PackageColumnState {
   id: string;
-  /** Current input value (what user sees in the field) */
-  value: string;
-  /** Current search query for autocomplete */
-  searchQuery: string;
-  /** Submitted value that triggers API fetch (set on Enter/blur/selection) */
-  submittedValue: string;
+  packageName: string;
 }
 
 export interface UsePackageColumnReturn {
-  columns: PackageColumnState[];
-  addColumn: () => void;
-  removeColumn: (id: string) => void;
-  updateColumn: (id: string, updates: Partial<PackageColumnState>) => void;
-  canAddMore: boolean;
+  packages: PackageColumnState[];
+  addPackage: (name: string) => void;
+  removePackage: (id: string) => void;
   canRemove: boolean;
 }
 
 export function usePackageColumn(): UsePackageColumnReturn {
-  const [columns, setColumns] =
-    useState<PackageColumnState[]>(createInitialColumns);
-
-  // Extract submitted package names for URL sync
-  const submittedPackages = useMemo(
-    () =>
-      columns
-        .map((col) => col.submittedValue.trim())
-        .filter((name) => name.length > 0),
-    [columns],
+  const [packages, setPackages] = useState<PackageColumnState[]>(
+    createInitialPackages,
   );
 
-  // Sync URL when submitted packages change
+  // Extract package names for URL sync
+  const packageNames = useMemo(
+    () => packages.map((pkg) => pkg.packageName),
+    [packages],
+  );
+
+  // Sync URL when packages change
   useEffect(() => {
     updateUrlWithPackages(
-      submittedPackages.map((name) => ({ ecosystem: "npm" as const, name })),
+      packageNames.map((name) => ({ ecosystem: "npm" as const, name })),
     );
-  }, [submittedPackages]);
+  }, [packageNames]);
 
-  const addColumn = () => {
-    if (columns.length >= MAX_PACKAGES) return;
-    setColumns((prev) => [
+  const addPackage = (name: string) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+
+    // Check for duplicates (case-insensitive)
+    const isDuplicate = packages.some(
+      (pkg) => pkg.packageName.toLowerCase() === trimmedName.toLowerCase(),
+    );
+
+    if (isDuplicate) {
+      notifications.show({
+        title: "Package already added",
+        message: `"${trimmedName}" is already in your comparison`,
+        color: "yellow",
+      });
+      return;
+    }
+
+    setPackages((prev) => [
       ...prev,
       {
         id: crypto.randomUUID(),
-        value: "",
-        searchQuery: "",
-        submittedValue: "",
+        packageName: trimmedName,
       },
     ]);
   };
 
-  const removeColumn = (id: string) => {
-    if (columns.length <= MIN_PACKAGES) return;
-    setColumns((prev) => prev.filter((col) => col.id !== id));
-  };
-
-  const updateColumn = (id: string, updates: Partial<PackageColumnState>) => {
-    setColumns((prev) =>
-      prev.map((col) => (col.id === id ? { ...col, ...updates } : col)),
-    );
+  const removePackage = (id: string) => {
+    setPackages((prev) => prev.filter((pkg) => pkg.id !== id));
   };
 
   return {
-    columns,
-    addColumn,
-    removeColumn,
-    updateColumn,
-    canAddMore: columns.length < MAX_PACKAGES,
-    canRemove: columns.length > MIN_PACKAGES,
+    packages,
+    addPackage,
+    removePackage,
+    canRemove: packages.length > 0,
   };
 }

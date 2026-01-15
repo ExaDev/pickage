@@ -1,12 +1,22 @@
-import { Container, Group, Title } from "@mantine/core";
+import { Container } from "@mantine/core";
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { theme } from "./theme";
+import { usePackageColumn } from "./hooks/usePackageColumn";
 import { PackageComparisonLayout } from "./components/comparison/PackageComparisonLayout";
 import { StickyInputBar } from "./components/comparison/StickyInputBar";
-import { SettingsModal } from "./components/ui/SettingsModal";
 
 function App() {
+  const { packages, addPackage, removePackage, canRemove } = usePackageColumn();
+  const packageNames = packages.map((pkg) => pkg.packageName);
+
+  const handleClear = () => {
+    // Remove all packages
+    packages.forEach((pkg) => {
+      removePackage(pkg.id);
+    });
+  };
+
   return (
     <MantineProvider theme={theme}>
       <Notifications />
@@ -37,14 +47,18 @@ function App() {
         Skip to main content
       </a>
 
-      <StickyInputBar packages={[]} onClear={() => {}} />
-      <Container id="main-content" size="xl" py="xl">
-        <Group justify="space-between" mb="xl">
-          <Title>PeekPackage</Title>
-          <SettingsModal />
-        </Group>
+      <StickyInputBar
+        packages={packageNames}
+        onClear={handleClear}
+        onAddPackage={addPackage}
+      />
 
-        <PackageComparisonLayout />
+      <Container id="main-content" size="xl" py="xl">
+        <PackageComparisonLayout
+          packages={packages}
+          removePackage={removePackage}
+          canRemove={canRemove}
+        />
       </Container>
     </MantineProvider>
   );

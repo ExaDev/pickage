@@ -166,9 +166,9 @@ test.describe("Package Comparison Journey", () => {
     // Add react
     await addPackage(page, "react");
 
-    // Wait for it to load
+    // Wait for it to load (use exact: true to avoid matching README h4s)
     await expect(
-      page.getByRole("heading", { name: "react", level: 4 }),
+      page.getByRole("heading", { name: "react", level: 4, exact: true }),
     ).toBeVisible({
       timeout: 15000,
     });
@@ -181,10 +181,16 @@ test.describe("Package Comparison Journey", () => {
     await expect(firstOption).toBeVisible({ timeout: 5000 });
     await firstOption.click();
 
-    // Should still only have one react column
+    // Wait for the duplicate notification to appear (confirms rejection)
+    await expect(page.getByText("Package already added")).toBeVisible({
+      timeout: 5000,
+    });
+
+    // Should still only have one react column (exact match to avoid README h4s)
     const reactHeadings = page.getByRole("heading", {
       name: "react",
       level: 4,
+      exact: true,
     });
     await expect(reactHeadings).toHaveCount(1);
   });
