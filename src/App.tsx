@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Alert, Button, Container, Group, Stack, Title } from "@mantine/core";
+import {
+  Alert,
+  Button,
+  Container,
+  Group,
+  Stack,
+  Title,
+  Transition,
+} from "@mantine/core";
 import { IconAlertCircle, IconDownload } from "@tabler/icons-react";
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
@@ -155,30 +163,74 @@ function App() {
             loading={isLoading}
           />
 
-          {isError && (
-            <Alert
-              icon={<IconAlertCircle size={16} />}
-              title="Error"
-              color="red"
-            >
-              {getErrorMessage()}
-            </Alert>
-          )}
+          <Transition
+            mounted={isError}
+            transition="fade"
+            duration={400}
+            timingFunction="ease"
+          >
+            {(styles) => (
+              <div style={styles}>
+                <Alert
+                  icon={<IconAlertCircle size={16} />}
+                  title="Error"
+                  color="red"
+                >
+                  {getErrorMessage()}
+                </Alert>
+              </div>
+            )}
+          </Transition>
 
-          {isLoading && <ResultsSkeleton />}
+          <Transition
+            mounted={isLoading}
+            transition="fade"
+            duration={400}
+            timingFunction="ease"
+          >
+            {(styles) => (
+              <div style={styles}>
+                <ResultsSkeleton />
+              </div>
+            )}
+          </Transition>
 
-          {!isLoading && !showComparison && <EmptyState />}
+          <Transition
+            mounted={!isLoading && !showComparison}
+            transition="fade"
+            duration={400}
+            timingFunction="ease"
+          >
+            {(styles) => (
+              <div style={styles}>
+                <EmptyState />
+              </div>
+            )}
+          </Transition>
 
-          {showComparison && comparison && (
-            <>
-              <ResultsDashboard comparison={comparison} />
+          <Transition
+            mounted={showComparison && comparison !== null}
+            transition="fade"
+            duration={400}
+            timingFunction="ease"
+          >
+            {(styles) => (
+              <div style={styles}>
+                <Stack gap="xl">
+                  {comparison && (
+                    <>
+                      <ResultsDashboard comparison={comparison} />
 
-              <Stack gap="md">
-                <Title order={3}>READMEs</Title>
-                <ReadmeAccordion packages={packages} />
-              </Stack>
-            </>
-          )}
+                      <Stack gap="md">
+                        <Title order={3}>READMEs</Title>
+                        <ReadmeAccordion packages={packages} />
+                      </Stack>
+                    </>
+                  )}
+                </Stack>
+              </div>
+            )}
+          </Transition>
         </Stack>
       </Container>
     </MantineProvider>
