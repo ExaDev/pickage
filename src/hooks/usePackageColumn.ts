@@ -5,6 +5,7 @@ import {
   updateUrlWithPackages,
   parsePackagesFromUrl,
 } from "./useUrlSync";
+import type { SortCriterion } from "@/types/sort";
 
 // No minimum - users can have 0 packages (shows empty state)
 
@@ -36,7 +37,15 @@ export interface UsePackageColumnReturn {
   canRemove: boolean;
 }
 
-export function usePackageColumn(): UsePackageColumnReturn {
+interface UsePackageColumnOptions {
+  sortCriteria?: SortCriterion[];
+}
+
+export function usePackageColumn(
+  options: UsePackageColumnOptions = {},
+): UsePackageColumnReturn {
+  const { sortCriteria = [] } = options;
+
   const [packages, setPackages] = useState<PackageColumnState[]>(
     createInitialPackages,
   );
@@ -50,7 +59,7 @@ export function usePackageColumn(): UsePackageColumnReturn {
     [packages],
   );
 
-  // Sync URL when packages change (skip during popstate handling)
+  // Sync URL when packages or sort criteria change (skip during popstate handling)
   useEffect(() => {
     if (isHandlingPopstate.current) {
       isHandlingPopstate.current = false;
@@ -58,8 +67,9 @@ export function usePackageColumn(): UsePackageColumnReturn {
     }
     updateUrlWithPackages(
       packageNames.map((name) => ({ ecosystem: "npm" as const, name })),
+      sortCriteria,
     );
-  }, [packageNames]);
+  }, [packageNames, sortCriteria]);
 
   // Handle browser back/forward navigation
   useEffect(() => {
