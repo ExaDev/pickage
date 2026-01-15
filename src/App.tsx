@@ -1,93 +1,12 @@
-import { useState, useEffect, useRef } from "react";
-import {
-  Alert,
-  Button,
-  Container,
-  Group,
-  Stack,
-  Title,
-  Transition,
-} from "@mantine/core";
-import { IconAlertCircle, IconDownload } from "@tabler/icons-react";
+import { Container, Group, Title } from "@mantine/core";
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { theme } from "./theme";
-import { PackageInput } from "./components/comparison/PackageInput";
-import { ReadmeAccordion } from "./components/ui/ReadmeAccordion";
-import { SettingsModal } from "./components/ui/SettingsModal";
-import { EmptyState } from "./components/comparison/EmptyState";
+import { PackageComparisonLayout } from "./components/comparison/PackageComparisonLayout";
 import { StickyInputBar } from "./components/comparison/StickyInputBar";
-import { ResultsSkeleton } from "./components/comparison/ResultsSkeleton";
-import { ResultsDashboard } from "./components/results/ResultsDashboard";
-import { ShareButton } from "./components/ui/ShareButton";
-import { HistoryPanel } from "./components/ui/HistoryPanel";
-import { usePackageComparison } from "./hooks/usePackageComparison";
-import { useShareableUrl } from "./hooks/useShareableUrl";
-import { useComparisonHistory } from "./hooks/useComparisonHistory";
-import { useKeyboardNavigation } from "./hooks/useKeyboardNavigation";
-import { ComparatorService } from "./services/comparator";
-import { exportToCsv } from "./utils/exportToCsv";
-import { useSearchParams } from "react-router-dom";
-import type { PackageInputHandle } from "./components/comparison/PackageInput";
+import { SettingsModal } from "./components/ui/SettingsModal";
 
 function App() {
-  const [searchParams] = useSearchParams();
-  const [packageNames, setPackageNames] = useState<string[]>([]);
-  const [showComparison, setShowComparison] = useState(false);
-  const packageInputRef = useRef<PackageInputHandle>(null);
-
-  const { isLoading, isError, errors, packages } =
-    usePackageComparison(packageNames);
-
-  const comparator = new ComparatorService();
-  const comparison =
-    packages.length > 0 ? comparator.compareMany(packages) : null;
-
-  const { shareUrl } = useShareableUrl(packageNames);
-  const { history, addToHistory, clearHistory, formatRelativeTime } =
-    useComparisonHistory();
-
-  // Keyboard navigation
-  useKeyboardNavigation({
-    onFocusInput: () => packageInputRef.current?.focus(),
-    onClear: () => {
-      setPackageNames([]);
-      setShowComparison(false);
-    },
-    onSubmit: () => {
-      if (packageNames.length >= 2) {
-        setShowComparison(true);
-      }
-    },
-  });
-
-  // Load packages from URL on mount
-  useEffect(() => {
-    const urlPackages = searchParams.get("packages")?.split(",");
-    if (urlPackages && urlPackages.length >= 2) {
-      setPackageNames(urlPackages);
-      setShowComparison(true);
-    }
-  }, [searchParams]);
-
-  const handleCompare = (names: string[]) => {
-    setPackageNames(names);
-    setShowComparison(true);
-    addToHistory(names);
-  };
-
-  const handleExport = () => {
-    if (packages.length > 0) {
-      exportToCsv(packages);
-    }
-  };
-
-  const getErrorMessage = () => {
-    if (errors.length === 0) return "Failed to load package data";
-    if (errors.length === 1) return errors[0].message;
-    return `${String(errors.length)} packages failed to load`;
-  };
-
   return (
     <MantineProvider theme={theme}>
       <Notifications />
@@ -118,120 +37,14 @@ function App() {
         Skip to main content
       </a>
 
-      <StickyInputBar
-        packages={packageNames}
-        onClear={() => {
-          setPackageNames([]);
-          setShowComparison(false);
-        }}
-      />
+      <StickyInputBar packages={[]} onClear={() => {}} />
       <Container id="main-content" size="xl" py="xl">
         <Group justify="space-between" mb="xl">
           <Title>PkgCompare</Title>
-          <Group gap="sm">
-            <HistoryPanel
-              history={history}
-              formatRelativeTime={formatRelativeTime}
-              onLoadComparison={(pkgs) => {
-                setPackageNames(pkgs);
-                setShowComparison(true);
-              }}
-              onClearHistory={clearHistory}
-            />
-            {showComparison && packages.length > 0 && (
-              <>
-                <ShareButton shareUrl={shareUrl} />
-                <Button
-                  variant="light"
-                  color="brand"
-                  size="sm"
-                  leftSection={<IconDownload size={16} />}
-                  onClick={handleExport}
-                >
-                  Export
-                </Button>
-              </>
-            )}
-            <SettingsModal />
-          </Group>
+          <SettingsModal />
         </Group>
 
-        <Stack gap="xl">
-          <PackageInput
-            ref={packageInputRef}
-            onCompare={handleCompare}
-            loading={isLoading}
-          />
-
-          <Transition
-            mounted={isError}
-            transition="fade"
-            duration={400}
-            timingFunction="ease"
-          >
-            {(styles) => (
-              <div style={styles}>
-                <Alert
-                  icon={<IconAlertCircle size={16} />}
-                  title="Error"
-                  color="red"
-                >
-                  {getErrorMessage()}
-                </Alert>
-              </div>
-            )}
-          </Transition>
-
-          <Transition
-            mounted={isLoading}
-            transition="fade"
-            duration={400}
-            timingFunction="ease"
-          >
-            {(styles) => (
-              <div style={styles}>
-                <ResultsSkeleton />
-              </div>
-            )}
-          </Transition>
-
-          <Transition
-            mounted={!isLoading && !showComparison}
-            transition="fade"
-            duration={400}
-            timingFunction="ease"
-          >
-            {(styles) => (
-              <div style={styles}>
-                <EmptyState />
-              </div>
-            )}
-          </Transition>
-
-          <Transition
-            mounted={showComparison && comparison !== null}
-            transition="fade"
-            duration={400}
-            timingFunction="ease"
-          >
-            {(styles) => (
-              <div style={styles}>
-                <Stack gap="xl">
-                  {comparison && (
-                    <>
-                      <ResultsDashboard comparison={comparison} />
-
-                      <Stack gap="md">
-                        <Title order={3}>READMEs</Title>
-                        <ReadmeAccordion packages={packages} />
-                      </Stack>
-                    </>
-                  )}
-                </Stack>
-              </div>
-            )}
-          </Transition>
-        </Stack>
+        <PackageComparisonLayout />
       </Container>
     </MantineProvider>
   );
