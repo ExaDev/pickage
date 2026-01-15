@@ -128,7 +128,7 @@ export class GithubClient {
   /**
    * Fetch README content
    * @param repoUrl GitHub repository URL
-   * @returns README content (base64 encoded)
+   * @returns README content (base64 encoded), or null if unavailable
    */
   async fetchReadme(repoUrl: string): Promise<GithubReadmeResponse | null> {
     const parsed = this.parseRepoUrl(repoUrl);
@@ -145,10 +145,23 @@ export class GithubClient {
 
       return response.data as GithubReadmeResponse;
     } catch (error: unknown) {
-      if (isOctokitError(error) && error.status === 404) {
-        return null;
+      // Gracefully handle errors - return null instead of throwing
+      if (isOctokitError(error)) {
+        if (error.status === 404) {
+          // README doesn't exist
+          return null;
+        }
+        if (error.status === 403) {
+          // Rate limit exceeded - log warning but don't fail
+          console.warn(
+            "GitHub API rate limit exceeded for README. Consider providing a GitHub token.",
+          );
+          return null;
+        }
       }
-      throw error;
+      // For other errors, log and return null to degrade gracefully
+      console.warn("Failed to fetch README:", error);
+      return null;
     }
   }
 
