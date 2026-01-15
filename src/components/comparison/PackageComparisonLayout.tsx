@@ -64,9 +64,9 @@ export function PackageComparisonLayout() {
     canRemove,
   } = usePackageColumn();
 
-  // Extract package names from columns
+  // Extract package names from submitted values (not current typing)
   const packageNames = columns
-    .map((col) => col.value)
+    .map((col) => col.submittedValue)
     .filter((name) => name.trim().length > 0);
 
   // Fetch package data
@@ -104,7 +104,7 @@ export function PackageComparisonLayout() {
           style={{ minWidth: "min-content", paddingBottom: "16px" }}
         >
           {columns.map((col) => {
-            const packageName = col.value.trim();
+            const packageName = col.submittedValue.trim();
             const packageStats =
               packageName && packageNames.includes(packageName)
                 ? (packages.find((p) => p.name === packageName) ?? null)
@@ -154,7 +154,7 @@ export function PackageComparisonLayout() {
           style={{ minWidth: "min-content", paddingBottom: "16px" }}
         >
           {columns.map((col) => {
-            const packageName = col.value.trim();
+            const packageName = col.submittedValue.trim();
             const packageStats =
               packageName && packageNames.includes(packageName)
                 ? (packages.find((p) => p.name === packageName) ?? null)

@@ -92,6 +92,9 @@ export const PackageInput = forwardRef<PackageInputHandle, PackageInputProps>(
             onChange={(value) => {
               handlePackageChange(index, value);
             }}
+            onSubmit={() => {
+              // Legacy component uses Compare button for submission
+            }}
             onRemove={
               packages.length > MIN_PACKAGES
                 ? () => {

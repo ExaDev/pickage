@@ -41,7 +41,12 @@ export function PackageColumn({
         value={columnState.value}
         searchQuery={columnState.searchQuery}
         onChange={(newValue) => {
+          // Update display value and search query as user types
           onUpdate({ value: newValue, searchQuery: newValue });
+        }}
+        onSubmit={(submittedValue) => {
+          // Update submittedValue to trigger API fetch
+          onUpdate({ value: submittedValue, submittedValue });
         }}
         onRemove={showRemove ? onRemove : undefined}
         showRemove={showRemove}

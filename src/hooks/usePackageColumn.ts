@@ -5,8 +5,12 @@ const MIN_PACKAGES = 1;
 
 export interface PackageColumnState {
   id: string;
+  /** Current input value (what user sees in the field) */
   value: string;
+  /** Current search query for autocomplete */
   searchQuery: string;
+  /** Submitted value that triggers API fetch (set on Enter/blur/selection) */
+  submittedValue: string;
 }
 
 export interface UsePackageColumnReturn {
@@ -20,14 +24,19 @@ export interface UsePackageColumnReturn {
 
 export function usePackageColumn(): UsePackageColumnReturn {
   const [columns, setColumns] = useState<PackageColumnState[]>([
-    { id: crypto.randomUUID(), value: "", searchQuery: "" },
+    { id: crypto.randomUUID(), value: "", searchQuery: "", submittedValue: "" },
   ]);
 
   const addColumn = () => {
     if (columns.length >= MAX_PACKAGES) return;
     setColumns((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), value: "", searchQuery: "" },
+      {
+        id: crypto.randomUUID(),
+        value: "",
+        searchQuery: "",
+        submittedValue: "",
+      },
     ]);
   };
 
