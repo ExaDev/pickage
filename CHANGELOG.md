@@ -1,3 +1,9 @@
+# [1.2.0](https://github.com/ExaDev/package-compare/compare/v1.1.0...v1.2.0) (2026-01-15)
+
+### Features
+
+- **config:** make vite base path dynamic using GITHUB_REPOSITORY ([4a32511](https://github.com/ExaDev/package-compare/commit/4a325113ce46822e52b0a8b48ea9bcbfadade95f))
+
 # [1.1.0](https://github.com/ExaDev/package-compare/compare/v1.0.1...v1.1.0) (2026-01-15)
 
 ### Features
