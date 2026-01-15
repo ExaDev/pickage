@@ -18,14 +18,17 @@ test.describe("API Integration (Real API)", () => {
     const input = page.getByRole("textbox", { name: "Package 1" });
     await input.fill("react");
 
-    // Wait for real autocomplete suggestions
-    const firstOption = page.getByRole("option").first();
-    await expect(firstOption).toBeVisible({ timeout: 10000 });
-    await firstOption.click();
+    // Wait for autocomplete suggestions and click the "react" option
+    // The option name includes both package name and description, so we match
+    // on "react React" to distinguish from "react-dom", "react-router", etc.
+    const reactOption = page.getByRole("option", { name: /^react React/ });
+    await expect(reactOption).toBeVisible({ timeout: 15000 });
+    await reactOption.click();
 
-    // Should show real package data
+    // Should show real package data - allow extra time for real API calls
+    // which may involve multiple requests (npms.io + GitHub API)
     await expect(page.getByRole("heading", { name: "react" })).toBeVisible({
-      timeout: 20000,
+      timeout: 30000,
     });
   });
 
