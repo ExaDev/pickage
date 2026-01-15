@@ -1,9 +1,9 @@
 /**
  * Request interface for fetching package comparison data
  */
-export interface PkgCompareRequest {
+export interface PrePackageRequest {
   packageName: string;
-  ecosystem: 'npm' | 'pypi' | 'cargo';
+  ecosystem: "npm" | "pypi" | "cargo";
 }
 
 /**
@@ -72,42 +72,42 @@ export interface GithubSpecificStats {
  * Comparison result for N packages
  */
 export interface NPackageComparison {
-  packages: PackageStats[]
-  metricComparisons: MetricComparison[]
+  packages: PackageStats[];
+  metricComparisons: MetricComparison[];
 }
 
 /**
  * Metric comparison across N packages
  */
 export interface MetricComparison {
-  name: string
+  name: string;
   values: Array<{
-    packageIndex: number
-    packageName: string
-    value: number | string | null
-    isWinner: boolean
-    percentDiff?: number
-  }>
+    packageIndex: number;
+    packageName: string;
+    value: number | string | null;
+    isWinner: boolean;
+    percentDiff?: number;
+  }>;
 }
 
 /**
  * Legacy comparison result for 2 packages (deprecated, kept for compatibility)
  */
 export interface ComparisonResult {
-  package1: PackageStats
-  package2: PackageStats
-  differences: PackageDifference[]
+  package1: PackageStats;
+  package2: PackageStats;
+  differences: PackageDifference[];
 }
 
 /**
  * Single metric difference (deprecated)
  */
 export interface PackageDifference {
-  metric: string
-  package1Value: number | string | null
-  package2Value: number | string | null
-  winner: 'package1' | 'package2' | 'tie' | 'none'
-  percentageDiff?: number
+  metric: string;
+  package1Value: number | string | null;
+  package2Value: number | string | null;
+  winner: "package1" | "package2" | "tie" | "none";
+  percentageDiff?: number;
 }
 
 /**
@@ -120,7 +120,7 @@ export interface EcosystemAdapter {
    * @param request Package comparison request
    * @returns Normalized package statistics
    */
-  fetch(request: PkgCompareRequest): Promise<PackageStats>;
+  fetch(request: PrePackageRequest): Promise<PackageStats>;
 
   /**
    * Check if adapter supports the given ecosystem
