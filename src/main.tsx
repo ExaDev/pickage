@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import "@mantine/core/styles.css";
 import "./index.css";
 import App from "./App";
+import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { queryClient, localStoragePersister } from "./utils/cache";
 
 async function enableMocking() {
@@ -34,7 +35,9 @@ void enableMocking().then(() => {
       >
         <BrowserRouter>
           <MantineProvider defaultColorScheme="auto">
-            <App />
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
           </MantineProvider>
         </BrowserRouter>
       </PersistQueryClientProvider>
