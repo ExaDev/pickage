@@ -58,17 +58,21 @@ export function serializePackagesToUrl(packages: UrlPackage[]): string {
 /**
  * Update URL without triggering navigation
  * Uses replaceState to avoid polluting browser history
+ * Manually constructs URL to avoid encoding colons and commas for readability
  */
 export function updateUrlWithPackages(packages: UrlPackage[]): void {
-  const url = new URL(window.location.href);
+  const { origin, pathname } = window.location;
 
   if (packages.length === 0) {
-    url.searchParams.delete("packages");
+    window.history.replaceState({}, "", `${origin}${pathname}`);
   } else {
-    url.searchParams.set("packages", serializePackagesToUrl(packages));
+    const packagesParam = serializePackagesToUrl(packages);
+    window.history.replaceState(
+      {},
+      "",
+      `${origin}${pathname}?packages=${packagesParam}`,
+    );
   }
-
-  window.history.replaceState({}, "", url.toString());
 }
 
 /**
