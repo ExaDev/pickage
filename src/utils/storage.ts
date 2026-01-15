@@ -1,4 +1,4 @@
-import Dexie, { Table } from 'dexie';
+import Dexie, { Table } from "dexie";
 
 /**
  * Cached API response structure
@@ -6,7 +6,7 @@ import Dexie, { Table } from 'dexie';
 export interface CachedResponse {
   id?: number;
   key: string;
-  data: any;
+  data: unknown;
   timestamp: number;
   etag?: string;
 }
@@ -19,9 +19,9 @@ class PackageCacheDatabase extends Dexie {
   cachedResponses!: Table<CachedResponse>;
 
   constructor() {
-    super('PkgCompareCache');
+    super("PrePackageCache");
     this.version(1).stores({
-      cachedResponses: 'key, timestamp',
+      cachedResponses: "key, timestamp",
     });
   }
 }
@@ -36,13 +36,13 @@ export const storage = {
    * Get cached response by key
    */
   async get(key: string): Promise<CachedResponse | undefined> {
-    return await db.cachedResponses.where('key').equals(key).first();
+    return await db.cachedResponses.where("key").equals(key).first();
   },
 
   /**
    * Set cached response
    */
-  async set(key: string, data: any, etag?: string): Promise<void> {
+  async set(key: string, data: unknown, etag?: string): Promise<void> {
     await db.cachedResponses.put({
       key,
       data,
@@ -56,7 +56,10 @@ export const storage = {
    * @param cachedItem Cached item to check
    * @param maxAge Maximum age in milliseconds (default: 24 hours)
    */
-  isStale(cachedItem: CachedResponse, maxAge: number = 24 * 60 * 60 * 1000): boolean {
+  isStale(
+    cachedItem: CachedResponse,
+    maxAge: number = 24 * 60 * 60 * 1000,
+  ): boolean {
     const age = Date.now() - cachedItem.timestamp;
     return age > maxAge;
   },
@@ -73,6 +76,6 @@ export const storage = {
    */
   async clearExpired(maxAge: number = 7 * 24 * 60 * 60 * 1000): Promise<void> {
     const cutoff = Date.now() - maxAge;
-    await db.cachedResponses.where('timestamp').below(cutoff).delete();
+    await db.cachedResponses.where("timestamp").below(cutoff).delete();
   },
 };
