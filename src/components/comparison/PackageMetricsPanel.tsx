@@ -502,8 +502,9 @@ export function PackageMetricsPanel({
                       <Box
                         ref={maintainersRef}
                         style={{
-                          overflow: maintainersExpanded ? "visible" : "hidden",
-                          maxHeight: maintainersExpanded ? "none" : "32px",
+                          overflow: "hidden",
+                          maxHeight: maintainersExpanded ? "500px" : "32px",
+                          transition: "max-height 200ms ease-in-out",
                         }}
                       >
                         <Group gap="xs" wrap="wrap">
