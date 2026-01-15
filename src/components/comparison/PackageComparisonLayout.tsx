@@ -155,7 +155,7 @@ export function PackageComparisonLayout() {
             : null;
 
         return (
-          <Box key={col.id} style={{ flex: "1 1 350px", maxWidth: "400px" }}>
+          <Box key={col.id} style={{ width: "350px", flexShrink: 0 }}>
             <PackageColumn
               columnState={col}
               index={columns.indexOf(col)}
