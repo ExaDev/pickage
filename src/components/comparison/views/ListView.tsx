@@ -13,6 +13,8 @@ export function ListView({
   winnerMetrics,
   canRemove,
   onRemove,
+  refetchingPackages,
+  onRefresh,
 }: ViewProps) {
   return (
     <Stack gap="lg">
@@ -26,10 +28,14 @@ export function ListView({
             packageName={pkg.packageName}
             packageStats={packageStats}
             isLoading={isLoading}
+            isRefetching={refetchingPackages[pkg.packageName]}
             showRemove={canRemove}
             winnerMetrics={winnerMetrics[pkg.packageName]}
             onRemove={() => {
               onRemove(pkg.id);
+            }}
+            onRefresh={() => {
+              onRefresh(pkg.packageName);
             }}
           />
         );

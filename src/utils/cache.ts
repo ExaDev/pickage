@@ -34,8 +34,8 @@ export const queryClient = new QueryClient({
       // Cache time: 7 days (keep data in cache)
       gcTime: 7 * 24 * 60 * 60 * 1000,
 
-      // Stale time: 1 hour (consider data fresh)
-      staleTime: 60 * 60 * 1000,
+      // Stale time: 72 hours (consider data fresh)
+      staleTime: 72 * 60 * 60 * 1000,
 
       // Retry failed requests once
       retry: 1,

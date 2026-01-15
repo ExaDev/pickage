@@ -1,9 +1,14 @@
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { NpmAdapter } from "@/adapters/npm";
 import type { PeekPackageRequest, PackageStats } from "@/types/adapter";
 import { cacheKeys } from "@/utils/cache";
 
 const adapter = new NpmAdapter();
+
+// 72 hours in milliseconds
+const STALE_TIME = 72 * 60 * 60 * 1000;
+const GC_TIME = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Hook for fetching package data with caching
@@ -21,8 +26,8 @@ export function usePackage(packageName: string, enabled: boolean = true) {
           return adapter.fetch(request);
         },
         enabled: enabled && !!packageName,
-        staleTime: 60 * 60 * 1000,
-        gcTime: 7 * 24 * 60 * 60 * 1000,
+        staleTime: STALE_TIME,
+        gcTime: GC_TIME,
       },
     ],
   })[0];
@@ -32,6 +37,8 @@ export function usePackage(packageName: string, enabled: boolean = true) {
  * Hook for comparing multiple packages
  */
 export function usePackageComparison(packageNames: string[]) {
+  const queryClient = useQueryClient();
+
   const results = useQueries({
     queries: packageNames.map((name) => ({
       queryKey: cacheKeys.package(name),
@@ -43,8 +50,8 @@ export function usePackageComparison(packageNames: string[]) {
         return adapter.fetch(request);
       },
       enabled: !!name,
-      staleTime: 60 * 60 * 1000,
-      gcTime: 7 * 24 * 60 * 60 * 1000,
+      staleTime: STALE_TIME,
+      gcTime: GC_TIME,
       retry: 1, // Only retry once to avoid long waits on API failures
     })),
   });
@@ -68,11 +75,30 @@ export function usePackageComparison(packageNames: string[]) {
     .filter((item) => item.failed)
     .map((item) => item.name);
 
+  // Track which packages are currently refetching
+  const refetchingPackages: Record<string, boolean> = {};
+  results.forEach((result, index) => {
+    refetchingPackages[packageNames[index]] =
+      result.isFetching && !result.isLoading;
+  });
+
+  // Refetch a specific package
+  const refetchPackage = useCallback(
+    async (packageName: string) => {
+      await queryClient.invalidateQueries({
+        queryKey: cacheKeys.package(packageName),
+      });
+    },
+    [queryClient],
+  );
+
   return {
     isLoading,
     isError,
     errors,
     packages,
     failedPackages,
+    refetchingPackages,
+    refetchPackage,
   };
 }

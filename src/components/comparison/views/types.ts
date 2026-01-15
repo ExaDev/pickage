@@ -11,4 +11,6 @@ export interface ViewProps {
   winnerMetrics: Record<string, Record<string, boolean>>;
   canRemove: boolean;
   onRemove: (id: string) => void;
+  refetchingPackages: Record<string, boolean>;
+  onRefresh: (packageName: string) => void;
 }

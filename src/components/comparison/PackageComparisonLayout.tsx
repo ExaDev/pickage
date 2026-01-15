@@ -74,6 +74,8 @@ export function PackageComparisonLayout({
     isLoading,
     packages: packagesData,
     failedPackages,
+    refetchingPackages,
+    refetchPackage,
   } = usePackageComparison(packageNames);
 
   // Track which packages we've already removed to avoid duplicate notifications
@@ -138,6 +140,8 @@ export function PackageComparisonLayout({
     winnerMetrics,
     canRemove,
     onRemove: removePackage,
+    refetchingPackages,
+    onRefresh: refetchPackage,
   };
 
   // Render based on view mode

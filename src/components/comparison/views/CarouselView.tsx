@@ -16,6 +16,8 @@ export function CarouselView({
   winnerMetrics,
   canRemove,
   onRemove,
+  refetchingPackages,
+  onRefresh,
 }: ViewProps) {
   const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
 
@@ -42,10 +44,14 @@ export function CarouselView({
                     packageName={pkg.packageName}
                     packageStats={packageStats}
                     isLoading={isLoading}
+                    isRefetching={refetchingPackages[pkg.packageName]}
                     showRemove={canRemove}
                     winnerMetrics={winnerMetrics[pkg.packageName]}
                     onRemove={() => {
                       onRemove(pkg.id);
+                    }}
+                    onRefresh={() => {
+                      onRefresh(pkg.packageName);
                     }}
                   />
                 </Box>
@@ -97,10 +103,14 @@ export function CarouselView({
                   packageName={pkg.packageName}
                   packageStats={packageStats}
                   isLoading={isLoading}
+                  isRefetching={refetchingPackages[pkg.packageName]}
                   showRemove={canRemove}
                   winnerMetrics={winnerMetrics[pkg.packageName]}
                   onRemove={() => {
                     onRemove(pkg.id);
+                  }}
+                  onRefresh={() => {
+                    onRefresh(pkg.packageName);
                   }}
                 />
               </Box>

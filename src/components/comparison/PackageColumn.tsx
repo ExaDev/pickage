@@ -1,5 +1,5 @@
-import { ActionIcon, Box, Group, Paper, Title } from "@mantine/core";
-import { IconX } from "@tabler/icons-react";
+import { ActionIcon, Box, Group, Paper, Title, Tooltip } from "@mantine/core";
+import { IconRefresh, IconX } from "@tabler/icons-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
@@ -10,20 +10,24 @@ interface PackageColumnProps {
   packageName: string;
   packageStats: PackageStats | null;
   isLoading: boolean;
+  isRefetching?: boolean;
   showRemove: boolean;
   winnerMetrics?: {
     [key in keyof PackageStats]?: boolean;
   };
   onRemove: () => void;
+  onRefresh?: () => void;
 }
 
 export function PackageColumn({
   packageName,
   packageStats,
   isLoading,
+  isRefetching = false,
   showRemove,
   winnerMetrics = {},
   onRemove,
+  onRefresh,
 }: PackageColumnProps) {
   return (
     <div
@@ -34,21 +38,37 @@ export function PackageColumn({
         height: "100%",
       }}
     >
-      {/* Package Header with Remove Button */}
+      {/* Package Header with Refresh and Remove Buttons */}
       <Paper p="sm" radius="md" withBorder>
         <Group justify="space-between" wrap="nowrap">
           <Title order={4}>{packageName}</Title>
-          {showRemove && (
-            <ActionIcon
-              color="red"
-              variant="subtle"
-              onClick={onRemove}
-              size="sm"
-              aria-label={`Remove ${packageName}`}
-            >
-              <IconX size={16} />
-            </ActionIcon>
-          )}
+          <Group gap="xs">
+            {onRefresh && (
+              <Tooltip label="Refresh data">
+                <ActionIcon
+                  color="blue"
+                  variant="subtle"
+                  onClick={onRefresh}
+                  size="sm"
+                  loading={isRefetching}
+                  aria-label={`Refresh ${packageName} data`}
+                >
+                  <IconRefresh size={16} />
+                </ActionIcon>
+              </Tooltip>
+            )}
+            {showRemove && (
+              <ActionIcon
+                color="red"
+                variant="subtle"
+                onClick={onRemove}
+                size="sm"
+                aria-label={`Remove ${packageName}`}
+              >
+                <IconX size={16} />
+              </ActionIcon>
+            )}
+          </Group>
         </Group>
       </Paper>
 

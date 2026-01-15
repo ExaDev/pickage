@@ -8,7 +8,7 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
-import { IconTrophy, IconX } from "@tabler/icons-react";
+import { IconRefresh, IconTrophy, IconX } from "@tabler/icons-react";
 import type { ViewProps } from "./types";
 
 /**
@@ -80,6 +80,8 @@ export function TableView({
   winnerMetrics,
   canRemove,
   onRemove,
+  refetchingPackages,
+  onRefresh,
 }: ViewProps) {
   if (isLoading) {
     return (
@@ -104,19 +106,35 @@ export function TableView({
                     <Text fw={600} truncate>
                       {pkg.packageName}
                     </Text>
-                    {canRemove && (
-                      <ActionIcon
-                        color="red"
-                        variant="subtle"
-                        size="xs"
-                        onClick={() => {
-                          onRemove(pkg.id);
-                        }}
-                        aria-label={`Remove ${pkg.packageName}`}
-                      >
-                        <IconX size={14} />
-                      </ActionIcon>
-                    )}
+                    <Group gap={4}>
+                      <Tooltip label="Refresh data">
+                        <ActionIcon
+                          color="blue"
+                          variant="subtle"
+                          size="xs"
+                          loading={refetchingPackages[pkg.packageName]}
+                          onClick={() => {
+                            onRefresh(pkg.packageName);
+                          }}
+                          aria-label={`Refresh ${pkg.packageName} data`}
+                        >
+                          <IconRefresh size={14} />
+                        </ActionIcon>
+                      </Tooltip>
+                      {canRemove && (
+                        <ActionIcon
+                          color="red"
+                          variant="subtle"
+                          size="xs"
+                          onClick={() => {
+                            onRemove(pkg.id);
+                          }}
+                          aria-label={`Remove ${pkg.packageName}`}
+                        >
+                          <IconX size={14} />
+                        </ActionIcon>
+                      )}
+                    </Group>
                   </Group>
                 </Table.Th>
               ))}
