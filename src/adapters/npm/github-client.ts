@@ -28,7 +28,7 @@ export class GithubClient {
 
     this.octokit = new Octokit({
       auth: token || undefined,
-      userAgent: "PrePackage-v1.0.0",
+      userAgent: "PeekPackage-v1.0.0",
     });
   }
 
@@ -51,7 +51,7 @@ export class GithubClient {
       localStorage.setItem("github_token", token);
       this.octokit = new Octokit({
         auth: token,
-        userAgent: "PrePackage-v1.0.0",
+        userAgent: "PeekPackage-v1.0.0",
       });
     } catch (error) {
       console.error("Failed to store GitHub token:", error);
@@ -66,7 +66,7 @@ export class GithubClient {
       localStorage.removeItem("github_token");
       this.octokit = new Octokit({
         auth: undefined,
-        userAgent: "PrePackage-v1.0.0",
+        userAgent: "PeekPackage-v1.0.0",
       });
     } catch (error) {
       console.error("Failed to clear GitHub token:", error);

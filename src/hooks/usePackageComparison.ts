@@ -1,6 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
 import { NpmAdapter } from "@/adapters/npm";
-import type { PrePackageRequest, PackageStats } from "@/types/adapter";
+import type { PeekPackageRequest, PackageStats } from "@/types/adapter";
 import { cacheKeys } from "@/utils/cache";
 
 const adapter = new NpmAdapter();
@@ -14,7 +14,7 @@ export function usePackage(packageName: string, enabled: boolean = true) {
       {
         queryKey: cacheKeys.package(packageName),
         queryFn: async () => {
-          const request: PrePackageRequest = {
+          const request: PeekPackageRequest = {
             packageName,
             ecosystem: "npm",
           };
@@ -36,7 +36,7 @@ export function usePackageComparison(packageNames: string[]) {
     queries: packageNames.map((name) => ({
       queryKey: cacheKeys.package(name),
       queryFn: async () => {
-        const request: PrePackageRequest = {
+        const request: PeekPackageRequest = {
           packageName: name,
           ecosystem: "npm",
         };

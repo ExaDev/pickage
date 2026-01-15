@@ -19,7 +19,7 @@ class PackageCacheDatabase extends Dexie {
   cachedResponses!: Table<CachedResponse>;
 
   constructor() {
-    super("PrePackageCache");
+    super("PeekPackageCache");
     this.version(1).stores({
       cachedResponses: "key, timestamp",
     });

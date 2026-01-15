@@ -1,6 +1,6 @@
 import type {
   EcosystemAdapter,
-  PrePackageRequest,
+  PeekPackageRequest,
   PackageStats,
 } from "@/types/adapter";
 import { NpmsClient } from "./npms-client";
@@ -22,7 +22,7 @@ export class NpmAdapter implements EcosystemAdapter {
   /**
    * Fetch package statistics from all sources
    */
-  async fetch(request: PrePackageRequest): Promise<PackageStats> {
+  async fetch(request: PeekPackageRequest): Promise<PackageStats> {
     const npmsData = await this.npmsClient.fetchPackage(request.packageName);
 
     // Extract from the npms.io response structure

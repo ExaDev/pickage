@@ -8,7 +8,7 @@ test.describe("Package Search Journey", () => {
 
   test("should display the app title", async ({ page }) => {
     await expect(
-      page.getByRole("heading", { name: "PrePackage", level: 1 }),
+      page.getByRole("heading", { name: "PeekPackage", level: 1 }),
     ).toBeVisible();
   });
 
@@ -64,7 +64,7 @@ test.describe("Package Search Journey", () => {
     });
 
     // Click somewhere else to blur (closes autocomplete and triggers submission)
-    await page.getByRole("heading", { name: "PrePackage", level: 1 }).click();
+    await page.getByRole("heading", { name: "PeekPackage", level: 1 }).click();
 
     // Should show package data - check for the package name heading
     await expect(page.getByRole("heading", { name: "axios" })).toBeVisible({

@@ -40,7 +40,7 @@ function App() {
       <StickyInputBar packages={[]} onClear={() => {}} />
       <Container id="main-content" size="xl" py="xl">
         <Group justify="space-between" mb="xl">
-          <Title>PrePackage</Title>
+          <Title>PeekPackage</Title>
           <SettingsModal />
         </Group>
 
