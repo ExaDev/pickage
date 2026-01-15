@@ -4,12 +4,12 @@ import { IconAlertCircle } from "@tabler/icons-react";
 import { MantineProvider } from "@mantine/core";
 import { theme } from "./theme";
 import { PackageInput } from "./components/comparison/PackageInput";
-import { ComparisonTable } from "./components/comparison/ComparisonTable";
 import { ReadmeAccordion } from "./components/ui/ReadmeAccordion";
 import { SettingsModal } from "./components/ui/SettingsModal";
 import { EmptyState } from "./components/comparison/EmptyState";
 import { StickyInputBar } from "./components/comparison/StickyInputBar";
 import { ResultsSkeleton } from "./components/comparison/ResultsSkeleton";
+import { ResultsDashboard } from "./components/results/ResultsDashboard";
 import { usePackageComparison } from "./hooks/usePackageComparison";
 import { ComparatorService } from "./services/comparator";
 
@@ -69,7 +69,7 @@ function App() {
 
           {showComparison && comparison && (
             <>
-              <ComparisonTable comparison={comparison} />
+              <ResultsDashboard comparison={comparison} />
 
               <Stack gap="md">
                 <Title order={3}>READMEs</Title>
