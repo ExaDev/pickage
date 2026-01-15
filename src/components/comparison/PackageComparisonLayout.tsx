@@ -146,35 +146,37 @@ export function PackageComparisonLayout() {
 
   // Desktop layout: Flex wrap with centered columns
   return (
-    <Flex gap="xl" align="flex-start" justify="center" wrap="wrap">
-      {columns.map((col) => {
-        const packageName = col.value.trim();
-        const packageStats =
-          packageName && packageNames.includes(packageName)
-            ? (packages.find((p) => p.name === packageName) ?? null)
-            : null;
+    <Flex gap="xl" align="flex-start" justify="center">
+      <Flex gap="xl" wrap="wrap" justify="center">
+        {columns.map((col) => {
+          const packageName = col.value.trim();
+          const packageStats =
+            packageName && packageNames.includes(packageName)
+              ? (packages.find((p) => p.name === packageName) ?? null)
+              : null;
 
-        return (
-          <Box key={col.id} style={{ width: "350px", flexShrink: 0 }}>
-            <PackageColumn
-              columnState={col}
-              index={columns.indexOf(col)}
-              packageStats={packageStats}
-              isLoading={isLoading && !!packageName}
-              showRemove={canRemove}
-              winnerMetrics={
-                packageName ? winnerMetrics[packageName] : undefined
-              }
-              onUpdate={(updates) => {
-                updateColumn(col.id, updates);
-              }}
-              onRemove={() => {
-                removeColumn(col.id);
-              }}
-            />
-          </Box>
-        );
-      })}
+          return (
+            <Box key={col.id} style={{ width: "350px", flexShrink: 0 }}>
+              <PackageColumn
+                columnState={col}
+                index={columns.indexOf(col)}
+                packageStats={packageStats}
+                isLoading={isLoading && !!packageName}
+                showRemove={canRemove}
+                winnerMetrics={
+                  packageName ? winnerMetrics[packageName] : undefined
+                }
+                onUpdate={(updates) => {
+                  updateColumn(col.id, updates);
+                }}
+                onRemove={() => {
+                  removeColumn(col.id);
+                }}
+              />
+            </Box>
+          );
+        })}
+      </Flex>
       <AddColumnButton
         onClick={addColumn}
         disabled={!canAddMore}
