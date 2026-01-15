@@ -1,31 +1,73 @@
-import type { PackageStats } from '@/types/adapter';
-
-/**
- * Comparison result for two packages
- */
-export interface ComparisonResult {
-  package1: PackageStats;
-  package2: PackageStats;
-  differences: PackageDifference[];
-}
-
-/**
- * Single metric difference
- */
-export interface PackageDifference {
-  metric: string;
-  package1Value: number | string | null;
-  package2Value: number | string | null;
-  winner: 'package1' | 'package2' | 'tie' | 'none';
-  percentageDiff?: number;
-}
+import type { PackageStats, NPackageComparison, MetricComparison, ComparisonResult, PackageDifference } from '@/types/adapter';
 
 /**
  * Service for comparing packages side-by-side
  */
 export class ComparatorService {
   /**
-   * Compare two packages and highlight differences
+   * Compare N packages and highlight differences
+   */
+  compareMany(packages: PackageStats[]): NPackageComparison {
+    if (packages.length === 0) {
+      return { packages: [], metricComparisons: [] };
+    }
+
+    const metricComparisons: MetricComparison[] = [];
+
+    const numericalMetrics: Array<keyof PackageStats> = [
+      'weeklyDownloads',
+      'totalDownloads',
+      'stars',
+      'forks',
+      'openIssues',
+      'quality',
+      'popularity',
+      'maintenance',
+    ];
+
+    for (const metric of numericalMetrics) {
+      const values = packages.map((pkg, index) => ({
+        packageIndex: index,
+        packageName: pkg.name,
+        value: pkg[metric] as number | undefined,
+      }));
+
+      const validValues = values.filter((v) => v.value !== undefined);
+      if (validValues.length === 0) continue;
+
+      const numericValues = validValues.map((v) => v.value as number);
+      const maxValue = Math.max(...numericValues);
+
+      const comparisonValues = values.map((v) => {
+        const isWinner = v.value === maxValue;
+        const percentDiff =
+          v.value !== undefined && maxValue !== 0 && v.value !== maxValue
+            ? ((v.value - maxValue) / maxValue) * 100
+            : undefined;
+
+        return {
+          packageIndex: v.packageIndex,
+          packageName: v.packageName,
+          value: v.value ?? null,
+          isWinner,
+          percentDiff,
+        };
+      });
+
+      metricComparisons.push({
+        name: this.formatMetricName(metric),
+        values: comparisonValues,
+      });
+    }
+
+    return {
+      packages,
+      metricComparisons,
+    };
+  }
+
+  /**
+   * Compare two packages and highlight differences (legacy method)
    */
   compare(pkg1: PackageStats, pkg2: PackageStats): ComparisonResult {
     const differences: PackageDifference[] = [];
@@ -81,7 +123,7 @@ export class ComparatorService {
   }
 
   /**
-   * Calculate percentage difference
+   * Calculate percentage difference (legacy method)
    */
   private calculatePercentageDiff(val1: number, val2: number): number {
     if (val1 === 0 && val2 === 0) return 0;
