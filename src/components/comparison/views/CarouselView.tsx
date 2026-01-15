@@ -43,7 +43,7 @@ export function CarouselView({
           minHeight: "100%",
           width: useFlexibleLayout ? "100%" : undefined,
           minWidth: useFlexibleLayout ? undefined : "min-content",
-          padding: "4px",
+          padding: "var(--mantine-spacing-md)",
         }}
       >
         {packages.map((pkg) => {
