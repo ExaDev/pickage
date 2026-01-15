@@ -20,8 +20,48 @@ export interface NpmDataResult {
   quality: number;
   popularity: number;
   maintenance: number;
+  finalScore: number;
   weeklyDownloads: number | undefined;
+  dependentsCount: number;
   npm: NpmSpecificStats;
+  // Author and maintainers
+  author: {
+    name: string;
+    email?: string;
+    url?: string;
+  } | null;
+  maintainers: Array<{
+    name: string;
+    email?: string;
+  }>;
+  // Links
+  links: {
+    npm: string;
+    homepage: string | null;
+    repository: string | null;
+    bugs: string | null;
+  };
+  // Detailed evaluation scores
+  evaluation: {
+    quality: {
+      carefulness: number;
+      tests: number;
+      health: number;
+      branding: number;
+    };
+    popularity: {
+      communityInterest: number;
+      downloadsCount: number;
+      downloadsAcceleration: number;
+      dependentsCount: number;
+    };
+    maintenance: {
+      releasesFrequency: number;
+      commitsFrequency: number;
+      openIssues: number;
+      issuesDistribution: number;
+    };
+  };
   // GitHub data from npms.io (cached, not rate-limited)
   githubFromNpms?: {
     stars: number;
@@ -61,7 +101,7 @@ export class NpmAdapter implements EcosystemAdapter {
   async fetchNpmData(packageName: string): Promise<NpmDataResult> {
     const npmsData = await this.npmsClient.fetchPackage(packageName);
 
-    const { collected, score } = npmsData;
+    const { collected, score, evaluation } = npmsData;
     const { metadata, npm: npmData, github: githubData } = collected;
     const { links } = metadata;
 
@@ -75,8 +115,10 @@ export class NpmAdapter implements EcosystemAdapter {
       quality: Math.round(score.detail.quality * 100),
       popularity: Math.round(score.detail.popularity * 100),
       maintenance: Math.round(score.detail.maintenance * 100),
+      finalScore: Math.round(score.final * 100),
       // Index 1 is weekly downloads, index 0 is daily
       weeklyDownloads: npmData.downloads[1]?.count,
+      dependentsCount: npmData.dependentsCount,
       npm: {
         dependencies: Object.keys(metadata.dependencies ?? {}),
         devDependencies: Object.keys(metadata.devDependencies ?? {}),
@@ -84,6 +126,51 @@ export class NpmAdapter implements EcosystemAdapter {
         license: metadata.license || "UNKNOWN",
         size: 0,
         keywords: metadata.keywords ?? [],
+      },
+      // Author and maintainers
+      author: metadata.author ?? null,
+      maintainers: metadata.maintainers,
+      // Links
+      links: {
+        npm: links.npm,
+        homepage: links.homepage ?? null,
+        repository: links.repository ?? null,
+        bugs: links.bugs ?? null,
+      },
+      // Detailed evaluation scores (convert 0-1 to 0-100)
+      evaluation: {
+        quality: {
+          carefulness: Math.round(evaluation.quality.carefulness * 100),
+          tests: Math.round(evaluation.quality.tests * 100),
+          health: Math.round(evaluation.quality.health * 100),
+          branding: Math.round(evaluation.quality.branding * 100),
+        },
+        popularity: {
+          communityInterest: Math.round(
+            evaluation.popularity.communityInterest * 100,
+          ),
+          downloadsCount: Math.round(
+            evaluation.popularity.downloadsCount * 100,
+          ),
+          downloadsAcceleration: Math.round(
+            evaluation.popularity.downloadsAcceleration * 100,
+          ),
+          dependentsCount: Math.round(
+            evaluation.popularity.dependentsCount * 100,
+          ),
+        },
+        maintenance: {
+          releasesFrequency: Math.round(
+            evaluation.maintenance.releasesFrequency * 100,
+          ),
+          commitsFrequency: Math.round(
+            evaluation.maintenance.commitsFrequency * 100,
+          ),
+          openIssues: Math.round(evaluation.maintenance.openIssues * 100),
+          issuesDistribution: Math.round(
+            evaluation.maintenance.issuesDistribution * 100,
+          ),
+        },
       },
     };
 
@@ -124,6 +211,8 @@ export class NpmAdapter implements EcosystemAdapter {
       defaultBranch: githubRepo.default_branch,
       readme: null,
       homepageUrl: githubRepo.homepage || "",
+      language: githubRepo.language,
+      size: githubRepo.size,
     };
 
     // Fetch README
@@ -170,12 +259,6 @@ export class NpmAdapter implements EcosystemAdapter {
         forks: npmData.githubFromNpms.forks,
         openIssues: npmData.githubFromNpms.openIssues,
         subscribers: npmData.githubFromNpms.subscribers,
-        createdAt: "",
-        updatedAt: "",
-        pushedAt: "",
-        defaultBranch: "main",
-        readme: null,
-        homepageUrl: npmData.homepage ?? "",
       };
     }
 
