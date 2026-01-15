@@ -2,6 +2,7 @@ import {
   Accordion,
   ActionIcon,
   Anchor,
+  Avatar,
   Badge,
   Box,
   Card,
@@ -22,6 +23,7 @@ import {
   IconTrophy,
   IconUser,
 } from "@tabler/icons-react";
+import { getGravatarUrl } from "@/utils/gravatar";
 
 interface PackageMetricsPanelProps {
   packageStats: PackageStats | null;
@@ -441,19 +443,31 @@ export function PackageMetricsPanel({
 
                   {/* Maintainers */}
                   {(packageStats.maintainers?.length ?? 0) > 0 && (
-                    <Group justify="space-between" align="flex-start">
-                      <Text size="xs" c="dimmed">
+                    <Box>
+                      <Text size="xs" c="dimmed" mb={4}>
                         Maintainers
                       </Text>
-                      <Text size="sm" ta="right">
-                        {packageStats.maintainers
-                          ?.slice(0, 3)
-                          .map((m) => m.name)
-                          .join(", ")}
-                        {(packageStats.maintainers?.length ?? 0) > 3 &&
-                          ` +${String((packageStats.maintainers?.length ?? 0) - 3)} more`}
-                      </Text>
-                    </Group>
+                      <Avatar.Group spacing="sm">
+                        {packageStats.maintainers?.slice(0, 5).map((m) => (
+                          <Tooltip key={m.name} label={m.name}>
+                            <Avatar
+                              src={getGravatarUrl(m.email, 32)}
+                              size="sm"
+                              radius="xl"
+                              alt={m.name}
+                            />
+                          </Tooltip>
+                        ))}
+                        {(packageStats.maintainers?.length ?? 0) > 5 && (
+                          <Avatar size="sm" radius="xl">
+                            +
+                            {String(
+                              (packageStats.maintainers?.length ?? 0) - 5,
+                            )}
+                          </Avatar>
+                        )}
+                      </Avatar.Group>
+                    </Box>
                   )}
 
                   {/* Links */}
