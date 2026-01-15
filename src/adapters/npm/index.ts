@@ -43,12 +43,12 @@ export class NpmAdapter implements EcosystemAdapter {
     };
 
     stats.npm = {
-      dependencies: Object.keys(metadata.dependencies),
-      devDependencies: Object.keys(metadata.devDependencies),
-      peerDependencies: metadata.peerDependencies,
+      dependencies: Object.keys(metadata.dependencies ?? {}),
+      devDependencies: Object.keys(metadata.devDependencies ?? {}),
+      peerDependencies: metadata.peerDependencies ?? {},
       license: metadata.license || "UNKNOWN",
       size: 0,
-      keywords: metadata.keywords,
+      keywords: metadata.keywords ?? [],
     };
 
     // Use GitHub data from npms.io if available

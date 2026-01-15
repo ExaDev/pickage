@@ -9,11 +9,11 @@ export interface NpmsPackageResponse {
       name: string;
       version: string;
       description: string | null;
-      keywords: string[];
-      license: string;
-      dependencies: Record<string, string>;
-      devDependencies: Record<string, string>;
-      peerDependencies: Record<string, string>;
+      keywords?: string[];
+      license?: string;
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
       links: {
         npm: string;
         homepage: string | null;
