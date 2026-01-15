@@ -1,5 +1,19 @@
-import { Octokit } from 'octokit';
-import type { GithubRepoResponse, GithubReadmeResponse } from '@/types/api';
+import { Octokit } from "octokit";
+import type { GithubRepoResponse, GithubReadmeResponse } from "@/types/api";
+
+interface OctokitError {
+  status: number;
+  message: string;
+}
+
+function isOctokitError(error: unknown): error is OctokitError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    typeof (error as OctokitError).status === "number"
+  );
+}
 
 /**
  * Client for GitHub REST API (CORS-enabled)
@@ -14,7 +28,7 @@ export class GithubClient {
 
     this.octokit = new Octokit({
       auth: token || undefined,
-      userAgent: 'PkgCompare-v1.0.0',
+      userAgent: "PrePackage-v1.0.0",
     });
   }
 
@@ -23,7 +37,7 @@ export class GithubClient {
    */
   private getStoredToken(): string | null {
     try {
-      return localStorage.getItem('github_token');
+      return localStorage.getItem("github_token");
     } catch {
       return null;
     }
@@ -34,13 +48,13 @@ export class GithubClient {
    */
   public setToken(token: string): void {
     try {
-      localStorage.setItem('github_token', token);
+      localStorage.setItem("github_token", token);
       this.octokit = new Octokit({
         auth: token,
-        userAgent: 'PkgCompare-v1.0.0',
+        userAgent: "PrePackage-v1.0.0",
       });
     } catch (error) {
-      console.error('Failed to store GitHub token:', error);
+      console.error("Failed to store GitHub token:", error);
     }
   }
 
@@ -49,13 +63,13 @@ export class GithubClient {
    */
   public clearToken(): void {
     try {
-      localStorage.removeItem('github_token');
+      localStorage.removeItem("github_token");
       this.octokit = new Octokit({
         auth: undefined,
-        userAgent: 'PkgCompare-v1.0.0',
+        userAgent: "PrePackage-v1.0.0",
       });
     } catch (error) {
-      console.error('Failed to clear GitHub token:', error);
+      console.error("Failed to clear GitHub token:", error);
     }
   }
 
@@ -64,12 +78,12 @@ export class GithubClient {
    * Supports formats: github.com/owner/repo, git+https://github.com/owner/repo.git
    */
   private parseRepoUrl(url: string): { owner: string; repo: string } | null {
-    const match = url.match(/github\.com\/([^\/]+)\/([^\/\.]+)/);
+    const match = url.match(/github\.com\/([^/]+)\/([^/.]+)/);
     if (!match) return null;
 
     return {
       owner: match[1],
-      repo: match[2].replace('.git', ''),
+      repo: match[2].replace(".git", ""),
     };
   }
 
@@ -85,18 +99,24 @@ export class GithubClient {
     }
 
     try {
-      const response = await this.octokit.request('GET /repos/{owner}/{repo}', {
+      const response = await this.octokit.request("GET /repos/{owner}/{repo}", {
         owner: parsed.owner,
         repo: parsed.repo,
       });
 
       return response.data as GithubRepoResponse;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new Error(`Repository not found: ${parsed.owner}/${parsed.repo}`);
-      }
-      if (error.status === 403) {
-        throw new Error('GitHub API rate limit exceeded. Please provide a GitHub token in settings.');
+    } catch (error: unknown) {
+      if (isOctokitError(error)) {
+        if (error.status === 404) {
+          throw new Error(
+            `Repository not found: ${parsed.owner}/${parsed.repo}`,
+          );
+        }
+        if (error.status === 403) {
+          throw new Error(
+            "GitHub API rate limit exceeded. Please provide a GitHub token in settings.",
+          );
+        }
       }
       throw error;
     }
@@ -113,16 +133,16 @@ export class GithubClient {
 
     try {
       const response = await this.octokit.request(
-        'GET /repos/{owner}/{repo}/readme',
+        "GET /repos/{owner}/{repo}/readme",
         {
           owner: parsed.owner,
           repo: parsed.repo,
-        }
+        },
       );
 
       return response.data as GithubReadmeResponse;
-    } catch (error: any) {
-      if (error.status === 404) {
+    } catch (error: unknown) {
+      if (isOctokitError(error) && error.status === 404) {
         return null;
       }
       throw error;
@@ -132,9 +152,13 @@ export class GithubClient {
   /**
    * Get remaining rate limit
    */
-  async getRateLimit(): Promise<{ remaining: number; limit: number; reset: number }> {
+  async getRateLimit(): Promise<{
+    remaining: number;
+    limit: number;
+    reset: number;
+  }> {
     try {
-      const response = await this.octokit.request('GET /rate_limit');
+      const response = await this.octokit.request("GET /rate_limit");
       const { core } = response.data.resources;
       return {
         remaining: core.remaining,
