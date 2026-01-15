@@ -69,5 +69,10 @@
     "vite": "^6.0.7",
     "vitest": "^4.0.17"
   },
-  "packageManager": "pnpm@10.27.0"
+  "packageManager": "pnpm@10.27.0",
+  "pnpm": {
+    "overrides": {
+      "vite": "^6.0.7"
+    }
+  }
 }

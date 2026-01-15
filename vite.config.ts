@@ -3,9 +3,27 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
+// Dynamic base path for GitHub Pages deployment
+// In CI, extracts repository name from GITHUB_REPOSITORY (format: owner/repo-name)
+// Falls back to "/" for local development
+const getBasePath = () => {
+  if (process.env.NODE_ENV !== "production") {
+    return "/";
+  }
+
+  // In GitHub Actions, extract repo name from GITHUB_REPOSITORY
+  if (process.env.GITHUB_REPOSITORY) {
+    const repoName = process.env.GITHUB_REPOSITORY.split("/")[1];
+    return `/${repoName}/`;
+  }
+
+  // Fallback for local production builds
+  return "/package-compare/";
+};
+
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === "production" ? "/package-compare/" : "/",
+  base: getBasePath(),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -21,6 +39,7 @@ export default defineConfig({
     target: "esnext",
     minify: "esbuild",
   },
+  // vitest config
   test: {
     globals: true,
     environment: "jsdom",
