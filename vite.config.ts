@@ -5,7 +5,7 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/PkgCompare/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/package-compare/' : '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
