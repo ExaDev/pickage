@@ -149,38 +149,62 @@ export function NpmsScoresSection({
         </Badge>
       </Group>
 
-      {/* Row 3: Main Score Badges */}
-      <Box px={px} py={py}>
-        <Group gap="xs" wrap="wrap">
+      {/* Row 3: Quality Score */}
+      <Group justify="space-between" px={px} py={py}>
+        <Group gap={4}>
+          <Text size="xs" c="dimmed">
+            Quality
+          </Text>
           <Tooltip label={CALCULATION_TOOLTIPS.quality} multiline w={250}>
-            <Badge
-              size="sm"
-              color={getScoreColor(packageStats?.quality)}
+            <IconInfoCircle
+              size={12}
+              color="var(--mantine-color-dimmed)"
               style={{ cursor: "help" }}
-            >
-              Quality: {packageStats?.quality ?? "N/A"}
-            </Badge>
-          </Tooltip>
-          <Tooltip label={CALCULATION_TOOLTIPS.popularity} multiline w={250}>
-            <Badge
-              size="sm"
-              color={getScoreColor(packageStats?.popularity)}
-              style={{ cursor: "help" }}
-            >
-              Popularity: {packageStats?.popularity ?? "N/A"}
-            </Badge>
-          </Tooltip>
-          <Tooltip label={CALCULATION_TOOLTIPS.maintenance} multiline w={250}>
-            <Badge
-              size="sm"
-              color={getScoreColor(packageStats?.maintenance)}
-              style={{ cursor: "help" }}
-            >
-              Maintenance: {packageStats?.maintenance ?? "N/A"}
-            </Badge>
+            />
           </Tooltip>
         </Group>
-      </Box>
+        <Badge size="sm" color={getScoreColor(packageStats?.quality)}>
+          {packageStats?.quality ?? "N/A"}
+        </Badge>
+      </Group>
+
+      {/* Row 4: Popularity Score */}
+      <Group justify="space-between" px={px} py={py}>
+        <Group gap={4}>
+          <Text size="xs" c="dimmed">
+            Popularity
+          </Text>
+          <Tooltip label={CALCULATION_TOOLTIPS.popularity} multiline w={250}>
+            <IconInfoCircle
+              size={12}
+              color="var(--mantine-color-dimmed)"
+              style={{ cursor: "help" }}
+            />
+          </Tooltip>
+        </Group>
+        <Badge size="sm" color={getScoreColor(packageStats?.popularity)}>
+          {packageStats?.popularity ?? "N/A"}
+        </Badge>
+      </Group>
+
+      {/* Row 5: Maintenance Score */}
+      <Group justify="space-between" px={px} py={py}>
+        <Group gap={4}>
+          <Text size="xs" c="dimmed">
+            Maintenance
+          </Text>
+          <Tooltip label={CALCULATION_TOOLTIPS.maintenance} multiline w={250}>
+            <IconInfoCircle
+              size={12}
+              color="var(--mantine-color-dimmed)"
+              style={{ cursor: "help" }}
+            />
+          </Tooltip>
+        </Group>
+        <Badge size="sm" color={getScoreColor(packageStats?.maintenance)}>
+          {packageStats?.maintenance ?? "N/A"}
+        </Badge>
+      </Group>
 
       {/* Row 4: Quality Breakdown title */}
       <Box px={px} py={py}>
