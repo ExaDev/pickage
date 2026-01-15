@@ -1,0 +1,19 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run lint-staged
+pnpm lint-staged
+
+# Run typecheck
+pnpm typecheck
+
+# Run build
+pnpm build
+
+# Skip tests for docs/chore commits
+commit_msg=$(git log -1 --pretty=%B 2>/dev/null || echo "")
+if echo "$commit_msg" | grep -qE "^(docs|chore|ci|style)"; then
+  echo "Skipping tests for $commit_msg"
+else
+  pnpm test:run
+fi
