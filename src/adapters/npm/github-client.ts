@@ -90,12 +90,13 @@ export class GithubClient {
   /**
    * Fetch repository information
    * @param repoUrl GitHub repository URL
-   * @returns Repository metadata
+   * @returns Repository metadata, or null if fetch fails (rate limit, not found, etc.)
    */
-  async fetchRepository(repoUrl: string): Promise<GithubRepoResponse> {
+  async fetchRepository(repoUrl: string): Promise<GithubRepoResponse | null> {
     const parsed = this.parseRepoUrl(repoUrl);
     if (!parsed) {
-      throw new Error(`Invalid GitHub repository URL: ${repoUrl}`);
+      console.warn(`Invalid GitHub repository URL: ${repoUrl}`);
+      return null;
     }
 
     try {
@@ -106,19 +107,21 @@ export class GithubClient {
 
       return response.data as GithubRepoResponse;
     } catch (error: unknown) {
+      // Log warning but don't throw - gracefully degrade
       if (isOctokitError(error)) {
         if (error.status === 404) {
-          throw new Error(
-            `Repository not found: ${parsed.owner}/${parsed.repo}`,
+          console.warn(`Repository not found: ${parsed.owner}/${parsed.repo}`);
+        } else if (error.status === 403) {
+          console.warn(
+            "GitHub API rate limit exceeded. Consider providing a GitHub token in settings.",
           );
+        } else {
+          console.warn("GitHub API error:", error.status, error.message);
         }
-        if (error.status === 403) {
-          throw new Error(
-            "GitHub API rate limit exceeded. Please provide a GitHub token in settings.",
-          );
-        }
+      } else {
+        console.warn("GitHub API error:", error);
       }
-      throw error;
+      return null;
     }
   }
 
