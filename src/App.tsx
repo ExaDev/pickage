@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Alert, Button, Container, Group, Stack, Title } from "@mantine/core";
 import { IconAlertCircle, IconDownload } from "@tabler/icons-react";
 import { MantineProvider } from "@mantine/core";
@@ -16,14 +16,17 @@ import { HistoryPanel } from "./components/ui/HistoryPanel";
 import { usePackageComparison } from "./hooks/usePackageComparison";
 import { useShareableUrl } from "./hooks/useShareableUrl";
 import { useComparisonHistory } from "./hooks/useComparisonHistory";
+import { useKeyboardNavigation } from "./hooks/useKeyboardNavigation";
 import { ComparatorService } from "./services/comparator";
 import { exportToCsv } from "./utils/exportToCsv";
 import { useSearchParams } from "react-router-dom";
+import type { PackageInputHandle } from "./components/comparison/PackageInput";
 
 function App() {
   const [searchParams] = useSearchParams();
   const [packageNames, setPackageNames] = useState<string[]>([]);
   const [showComparison, setShowComparison] = useState(false);
+  const packageInputRef = useRef<PackageInputHandle>(null);
 
   const { isLoading, isError, errors, packages } =
     usePackageComparison(packageNames);
@@ -35,6 +38,20 @@ function App() {
   const { shareUrl } = useShareableUrl(packageNames);
   const { history, addToHistory, clearHistory, formatRelativeTime } =
     useComparisonHistory();
+
+  // Keyboard navigation
+  useKeyboardNavigation({
+    onFocusInput: () => packageInputRef.current?.focus(),
+    onClear: () => {
+      setPackageNames([]);
+      setShowComparison(false);
+    },
+    onSubmit: () => {
+      if (packageNames.length >= 2) {
+        setShowComparison(true);
+      }
+    },
+  });
 
   // Load packages from URL on mount
   useEffect(() => {
@@ -66,6 +83,33 @@ function App() {
   return (
     <MantineProvider theme={theme}>
       <Notifications />
+
+      {/* Skip Link for Accessibility */}
+      <a
+        href="#main-content"
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          zIndex: 999,
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
+        }}
+        onFocus={(e) => {
+          e.target.style.left = "0";
+          e.target.style.top = "0";
+          e.target.style.width = "auto";
+          e.target.style.height = "auto";
+        }}
+        onBlur={(e) => {
+          e.target.style.left = "-9999px";
+          e.target.style.width = "1px";
+          e.target.style.height = "1px";
+        }}
+      >
+        Skip to main content
+      </a>
+
       <StickyInputBar
         packages={packageNames}
         onClear={() => {
@@ -73,7 +117,7 @@ function App() {
           setShowComparison(false);
         }}
       />
-      <Container size="xl" py="xl">
+      <Container id="main-content" size="xl" py="xl">
         <Group justify="space-between" mb="xl">
           <Title>PkgCompare</Title>
           <Group gap="sm">
@@ -105,7 +149,11 @@ function App() {
         </Group>
 
         <Stack gap="xl">
-          <PackageInput onCompare={handleCompare} loading={isLoading} />
+          <PackageInput
+            ref={packageInputRef}
+            onCompare={handleCompare}
+            loading={isLoading}
+          />
 
           {isError && (
             <Alert
