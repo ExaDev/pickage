@@ -45,6 +45,7 @@ export function usePackageComparison(packageNames: string[]) {
       enabled: !!name,
       staleTime: 60 * 60 * 1000,
       gcTime: 7 * 24 * 60 * 60 * 1000,
+      retry: 1, // Only retry once to avoid long waits on API failures
     })),
   });
 
