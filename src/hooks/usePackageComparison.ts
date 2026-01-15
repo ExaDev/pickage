@@ -98,8 +98,14 @@ export function usePackageComparison(packageNames: string[]) {
           quality: npmData.quality,
           popularity: npmData.popularity,
           maintenance: npmData.maintenance,
+          finalScore: npmData.finalScore,
           weeklyDownloads: npmData.weeklyDownloads,
+          dependentsCount: npmData.dependentsCount,
           npm: npmData.npm,
+          author: npmData.author,
+          maintainers: npmData.maintainers,
+          links: npmData.links,
+          evaluation: npmData.evaluation,
         };
 
         // Use GitHub data from API if available, otherwise fall back to npms.io data
@@ -117,12 +123,6 @@ export function usePackageComparison(packageNames: string[]) {
             forks: npmData.githubFromNpms.forks,
             openIssues: npmData.githubFromNpms.openIssues,
             subscribers: npmData.githubFromNpms.subscribers,
-            createdAt: "",
-            updatedAt: "",
-            pushedAt: "",
-            defaultBranch: "main",
-            readme: null,
-            homepageUrl: npmData.homepage ?? "",
           };
         }
 
