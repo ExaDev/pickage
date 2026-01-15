@@ -1,3 +1,10 @@
+# Skip all hooks for semantic-release commits
+commit_msg=$(git log -1 --pretty=%B 2>/dev/null || echo "")
+if echo "$commit_msg" | grep -qE "\[skip ci\]|chore\(release\)"; then
+  echo "Skipping pre-commit hooks for release commit"
+  exit 0
+fi
+
 # Run lint-staged
 pnpm lint-staged
 
@@ -8,7 +15,6 @@ pnpm typecheck
 pnpm build
 
 # Skip tests for docs/chore commits
-commit_msg=$(git log -1 --pretty=%B 2>/dev/null || echo "")
 if echo "$commit_msg" | grep -qE "^(docs|chore|ci|style)"; then
   echo "Skipping tests for $commit_msg"
 else
