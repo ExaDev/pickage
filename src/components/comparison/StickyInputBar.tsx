@@ -42,7 +42,7 @@ export function StickyInputBar({ packages, onClear }: StickyInputBarProps) {
         <Container size="xl">
           <Group justify="space-between">
             <Group gap="xs">
-              <Title order={4}>PkgCompare</Title>
+              <Title order={4}>PrePackage</Title>
               {packages.length > 0 && (
                 <Group gap={4}>
                   {packages.map((pkg) => (
