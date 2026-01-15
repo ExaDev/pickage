@@ -31,6 +31,7 @@ export default {
         "test", // Tests
         "config", // Configuration
         "deps", // Dependencies
+        "release", // Release commits from semantic-release
       ],
     ],
     "subject-case": [0], // Allow any case (we'll enforce manually)
