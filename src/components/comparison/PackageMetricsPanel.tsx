@@ -234,6 +234,75 @@ export function PackageMetricsPanel({
                 {packageStats.npm?.dependencies.length ?? 0}
               </Text>
             </Group>
+
+            {/* More npm Stats Accordion */}
+            {((packageStats.npm?.devDependencies.length ?? 0) > 0 ||
+              (packageStats.npm
+                ? Object.keys(packageStats.npm.peerDependencies).length
+                : 0) > 0 ||
+              hasKeywords) && (
+              <Accordion variant="filled" radius="sm" mt="xs">
+                <Accordion.Item value="more-npm">
+                  <Accordion.Control>
+                    <Text size="xs">More</Text>
+                  </Accordion.Control>
+                  <Accordion.Panel>
+                    <Stack gap="xs">
+                      {(packageStats.npm?.devDependencies.length ?? 0) > 0 && (
+                        <Group justify="space-between">
+                          <Text size="xs" c="dimmed">
+                            Dev Dependencies
+                          </Text>
+                          <Text size="sm">
+                            {packageStats.npm?.devDependencies.length ?? 0}
+                          </Text>
+                        </Group>
+                      )}
+                      {(packageStats.npm
+                        ? Object.keys(packageStats.npm.peerDependencies).length
+                        : 0) > 0 && (
+                        <Group justify="space-between">
+                          <Text size="xs" c="dimmed">
+                            Peer Dependencies
+                          </Text>
+                          <Text size="sm">
+                            {packageStats.npm
+                              ? Object.keys(packageStats.npm.peerDependencies)
+                                  .length
+                              : 0}
+                          </Text>
+                        </Group>
+                      )}
+                      {hasKeywords && (
+                        <Box>
+                          <Text size="xs" c="dimmed" mb={4}>
+                            Keywords
+                          </Text>
+                          <Group gap={4}>
+                            {packageStats.npm?.keywords
+                              .slice(0, 5)
+                              .map((kw) => (
+                                <Badge key={kw} size="xs" variant="outline">
+                                  {kw}
+                                </Badge>
+                              ))}
+                            {(packageStats.npm?.keywords.length ?? 0) > 5 && (
+                              <Badge size="xs" variant="light">
+                                +
+                                {String(
+                                  (packageStats.npm?.keywords.length ?? 0) - 5,
+                                )}{" "}
+                                more
+                              </Badge>
+                            )}
+                          </Group>
+                        </Box>
+                      )}
+                    </Stack>
+                  </Accordion.Panel>
+                </Accordion.Item>
+              </Accordion>
+            )}
           </Stack>
         </Box>
 
@@ -343,13 +412,67 @@ export function PackageMetricsPanel({
                 </Tooltip>
               </Group>
             )}
+
+            {/* More GitHub Stats Accordion */}
+            {packageStats.github && (
+              <Accordion variant="filled" radius="sm" mt="xs">
+                <Accordion.Item value="more-github">
+                  <Accordion.Control>
+                    <Text size="xs">More</Text>
+                  </Accordion.Control>
+                  <Accordion.Panel>
+                    <Stack gap="xs">
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Watchers
+                        </Text>
+                        <Text size="sm">
+                          {formatNumber(packageStats.github.subscribers)}
+                        </Text>
+                      </Group>
+                      {packageStats.github.size !== undefined &&
+                        packageStats.github.size > 0 && (
+                          <Group justify="space-between">
+                            <Text size="xs" c="dimmed">
+                              Repo Size
+                            </Text>
+                            <Text size="sm">
+                              {formatSize(packageStats.github.size)}
+                            </Text>
+                          </Group>
+                        )}
+                      {packageStats.github.createdAt && (
+                        <Group justify="space-between">
+                          <Text size="xs" c="dimmed">
+                            Created
+                          </Text>
+                          <Text size="sm">
+                            {formatDate(packageStats.github.createdAt)}
+                          </Text>
+                        </Group>
+                      )}
+                      {packageStats.github.updatedAt && (
+                        <Group justify="space-between">
+                          <Text size="xs" c="dimmed">
+                            Last Updated
+                          </Text>
+                          <Text size="sm">
+                            {formatRelativeDate(packageStats.github.updatedAt)}
+                          </Text>
+                        </Group>
+                      )}
+                    </Stack>
+                  </Accordion.Panel>
+                </Accordion.Item>
+              </Accordion>
+            )}
           </Stack>
         </Box>
 
         {/* Accordion Sections for Additional Data */}
         <Accordion variant="separated" radius="sm">
           {/* Package Info Section */}
-          {(hasAuthorOrMaintainers || hasKeywords || hasLinks) && (
+          {(hasAuthorOrMaintainers || hasLinks) && (
             <Accordion.Item value="package-info">
               <Accordion.Control icon={<IconUser size={16} />}>
                 <Text size="sm">Package Info</Text>
@@ -381,31 +504,6 @@ export function PackageMetricsPanel({
                           ` +${String((packageStats.maintainers?.length ?? 0) - 3)} more`}
                       </Text>
                     </Group>
-                  )}
-
-                  {/* Keywords */}
-                  {hasKeywords && (
-                    <Box>
-                      <Text size="xs" c="dimmed" mb={4}>
-                        Keywords
-                      </Text>
-                      <Group gap={4}>
-                        {packageStats.npm?.keywords.slice(0, 5).map((kw) => (
-                          <Badge key={kw} size="xs" variant="outline">
-                            {kw}
-                          </Badge>
-                        ))}
-                        {(packageStats.npm?.keywords.length ?? 0) > 5 && (
-                          <Badge size="xs" variant="light">
-                            +
-                            {String(
-                              (packageStats.npm?.keywords.length ?? 0) - 5,
-                            )}{" "}
-                            more
-                          </Badge>
-                        )}
-                      </Group>
-                    </Box>
                   )}
 
                   {/* Links */}
@@ -565,92 +663,6 @@ export function PackageMetricsPanel({
                       </Group>
                     </Stack>
                   </Box>
-                </Stack>
-              </Accordion.Panel>
-            </Accordion.Item>
-          )}
-
-          {/* More npm Stats */}
-          {((packageStats.npm?.devDependencies.length ?? 0) > 0 ||
-            (packageStats.npm
-              ? Object.keys(packageStats.npm.peerDependencies).length
-              : 0) > 0) && (
-            <Accordion.Item value="more-npm">
-              <Accordion.Control icon={<IconBrandNpm size={16} />}>
-                <Text size="sm">More npm Stats</Text>
-              </Accordion.Control>
-              <Accordion.Panel>
-                <Stack gap="xs">
-                  <Group justify="space-between">
-                    <Text size="xs" c="dimmed">
-                      Dev Dependencies
-                    </Text>
-                    <Text size="sm">
-                      {packageStats.npm?.devDependencies.length ?? 0}
-                    </Text>
-                  </Group>
-                  <Group justify="space-between">
-                    <Text size="xs" c="dimmed">
-                      Peer Dependencies
-                    </Text>
-                    <Text size="sm">
-                      {packageStats.npm
-                        ? Object.keys(packageStats.npm.peerDependencies).length
-                        : 0}
-                    </Text>
-                  </Group>
-                </Stack>
-              </Accordion.Panel>
-            </Accordion.Item>
-          )}
-
-          {/* More GitHub Stats */}
-          {packageStats.github && (
-            <Accordion.Item value="more-github">
-              <Accordion.Control icon={<IconBrandGithub size={16} />}>
-                <Text size="sm">More GitHub Stats</Text>
-              </Accordion.Control>
-              <Accordion.Panel>
-                <Stack gap="xs">
-                  <Group justify="space-between">
-                    <Text size="xs" c="dimmed">
-                      Watchers
-                    </Text>
-                    <Text size="sm">
-                      {formatNumber(packageStats.github.subscribers)}
-                    </Text>
-                  </Group>
-                  {packageStats.github.size !== undefined &&
-                    packageStats.github.size > 0 && (
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Repo Size
-                        </Text>
-                        <Text size="sm">
-                          {formatSize(packageStats.github.size)}
-                        </Text>
-                      </Group>
-                    )}
-                  {packageStats.github.createdAt && (
-                    <Group justify="space-between">
-                      <Text size="xs" c="dimmed">
-                        Created
-                      </Text>
-                      <Text size="sm">
-                        {formatDate(packageStats.github.createdAt)}
-                      </Text>
-                    </Group>
-                  )}
-                  {packageStats.github.updatedAt && (
-                    <Group justify="space-between">
-                      <Text size="xs" c="dimmed">
-                        Last Updated
-                      </Text>
-                      <Text size="sm">
-                        {formatRelativeDate(packageStats.github.updatedAt)}
-                      </Text>
-                    </Group>
-                  )}
                 </Stack>
               </Accordion.Panel>
             </Accordion.Item>
