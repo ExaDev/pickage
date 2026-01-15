@@ -1,11 +1,8 @@
-import { Box, Flex, ScrollArea, Stack } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
 import { usePackageComparison } from "@/hooks/usePackageComparison";
 import type { PackageColumnState } from "@/hooks/usePackageColumn";
-import { PackageColumn } from "./PackageColumn";
+import type { ViewMode } from "@/types/views";
 import { EmptyState } from "./EmptyState";
-
-const MOBILE_BREAKPOINT = 1024;
+import { CarouselView, GridView, ListView, TableView } from "./views";
 
 /**
  * Calculate which metrics each package wins at
@@ -56,12 +53,14 @@ function calculateWinnerMetrics(
 
 interface PackageComparisonLayoutProps {
   packages: PackageColumnState[];
+  viewMode: ViewMode;
   removePackage: (id: string) => void;
   canRemove: boolean;
 }
 
 export function PackageComparisonLayout({
   packages: packageColumns,
+  viewMode,
   removePackage,
   canRemove,
 }: PackageComparisonLayoutProps) {
@@ -92,104 +91,32 @@ export function PackageComparisonLayout({
     })),
   );
 
-  const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
-
   // Show empty state when no packages added
   if (packageColumns.length === 0) {
     return <EmptyState />;
   }
 
-  if (isMobile) {
-    // Mobile layout: Horizontal scroll with wider columns
-    return (
-      <Stack gap="xl">
-        <ScrollArea.Autosize type="scroll" offsetScrollbars>
-          <Flex
-            gap="md"
-            justify="center"
-            style={{ minWidth: "min-content", paddingBottom: "16px" }}
-          >
-            {packageColumns.map((pkg) => {
-              const packageStats =
-                packagesData.find((p) => p.name === pkg.packageName) ?? null;
+  // Shared props for all view components
+  const viewProps = {
+    packages: packageColumns,
+    packagesData,
+    isLoading,
+    winnerMetrics,
+    canRemove,
+    onRemove: removePackage,
+  };
 
-              return (
-                <Box
-                  key={pkg.id}
-                  style={{ minWidth: "320px", flexShrink: 0, width: "320px" }}
-                >
-                  <PackageColumn
-                    packageName={pkg.packageName}
-                    packageStats={packageStats}
-                    isLoading={isLoading}
-                    showRemove={canRemove}
-                    winnerMetrics={winnerMetrics[pkg.packageName]}
-                    onRemove={() => {
-                      removePackage(pkg.id);
-                    }}
-                  />
-                </Box>
-              );
-            })}
-          </Flex>
-        </ScrollArea.Autosize>
-      </Stack>
-    );
+  // Render based on view mode
+  switch (viewMode) {
+    case "carousel":
+      return <CarouselView {...viewProps} />;
+    case "grid":
+      return <GridView {...viewProps} />;
+    case "list":
+      return <ListView {...viewProps} />;
+    case "table":
+      return <TableView {...viewProps} />;
+    default:
+      return <CarouselView {...viewProps} />;
   }
-
-  // Desktop layout: Flexible columns that expand to use available space
-  // For 1-2 packages: expand to fill width (max 600px for readability)
-  // For 3+ packages: horizontal scroll with wider columns
-  const columnCount = packageColumns.length;
-  const useFlexibleLayout = columnCount <= 2;
-
-  return (
-    <Stack gap="xl">
-      <ScrollArea.Autosize type="scroll" offsetScrollbars>
-        <Flex
-          gap="xl"
-          justify="center"
-          style={{
-            minWidth: "min-content",
-            paddingBottom: "16px",
-            width: useFlexibleLayout ? "100%" : undefined,
-          }}
-        >
-          {packageColumns.map((pkg) => {
-            const packageStats =
-              packagesData.find((p) => p.name === pkg.packageName) ?? null;
-
-            return (
-              <Box
-                key={pkg.id}
-                style={
-                  useFlexibleLayout
-                    ? {
-                        flex: 1,
-                        minWidth: "350px",
-                        maxWidth: "600px",
-                      }
-                    : {
-                        width: "450px",
-                        flexShrink: 0,
-                      }
-                }
-              >
-                <PackageColumn
-                  packageName={pkg.packageName}
-                  packageStats={packageStats}
-                  isLoading={isLoading}
-                  showRemove={canRemove}
-                  winnerMetrics={winnerMetrics[pkg.packageName]}
-                  onRemove={() => {
-                    removePackage(pkg.id);
-                  }}
-                />
-              </Box>
-            );
-          })}
-        </Flex>
-      </ScrollArea.Autosize>
-    </Stack>
-  );
 }

@@ -5,25 +5,37 @@ import {
   Badge,
   Button,
   Container,
+  Divider,
   Group,
   Paper,
   Title,
   Tooltip,
 } from "@mantine/core";
-import { IconPlus } from "@tabler/icons-react";
+import {
+  IconLayoutColumns,
+  IconLayoutGrid,
+  IconLayoutList,
+  IconPlus,
+  IconTable,
+} from "@tabler/icons-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePackageSearch } from "@/hooks/usePackageSearch";
+import type { ViewMode } from "@/types/views";
 
 const DEBOUNCE_DELAY = 300;
 
 interface StickyInputBarProps {
   packages: string[];
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
   onClear: () => void;
   onAddPackage: (name: string) => void;
 }
 
 export function StickyInputBar({
   packages,
+  viewMode,
+  onViewModeChange,
   onClear,
   onAddPackage,
 }: StickyInputBarProps) {
@@ -150,11 +162,74 @@ export function StickyInputBar({
             )}
           </Group>
 
-          {packages.length > 0 && (
-            <Button variant="light" size="sm" onClick={onClear}>
-              Clear
-            </Button>
-          )}
+          <Group gap="xs" wrap="nowrap">
+            {/* View mode selector */}
+            {packages.length > 0 && (
+              <>
+                <Group gap={4}>
+                  <Tooltip label="Carousel view">
+                    <ActionIcon
+                      variant={viewMode === "carousel" ? "filled" : "subtle"}
+                      color="brand"
+                      size="sm"
+                      onClick={() => {
+                        onViewModeChange("carousel");
+                      }}
+                      aria-label="Carousel view"
+                    >
+                      <IconLayoutColumns size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label="Grid view">
+                    <ActionIcon
+                      variant={viewMode === "grid" ? "filled" : "subtle"}
+                      color="brand"
+                      size="sm"
+                      onClick={() => {
+                        onViewModeChange("grid");
+                      }}
+                      aria-label="Grid view"
+                    >
+                      <IconLayoutGrid size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label="List view">
+                    <ActionIcon
+                      variant={viewMode === "list" ? "filled" : "subtle"}
+                      color="brand"
+                      size="sm"
+                      onClick={() => {
+                        onViewModeChange("list");
+                      }}
+                      aria-label="List view"
+                    >
+                      <IconLayoutList size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label="Table view">
+                    <ActionIcon
+                      variant={viewMode === "table" ? "filled" : "subtle"}
+                      color="brand"
+                      size="sm"
+                      onClick={() => {
+                        onViewModeChange("table");
+                      }}
+                      aria-label="Table view"
+                    >
+                      <IconTable size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+                </Group>
+                <Divider orientation="vertical" />
+              </>
+            )}
+
+            {packages.length > 0 && (
+              <Button variant="light" size="sm" onClick={onClear}>
+                Clear
+              </Button>
+            )}
+          </Group>
         </Group>
       </Container>
     </Paper>
