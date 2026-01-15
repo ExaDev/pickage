@@ -1,7 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { getInitialPackagesFromUrl, updateUrlWithPackages } from "./useUrlSync";
 
 const MAX_PACKAGES = 6;
 const MIN_PACKAGES = 1;
+
+/**
+ * Create initial columns from URL packages or default empty column
+ */
+function createInitialColumns(): PackageColumnState[] {
+  const urlPackages = getInitialPackagesFromUrl();
+
+  if (urlPackages.length === 0) {
+    return [
+      {
+        id: crypto.randomUUID(),
+        value: "",
+        searchQuery: "",
+        submittedValue: "",
+      },
+    ];
+  }
+
+  // Create columns for each URL package (up to MAX_PACKAGES)
+  return urlPackages.slice(0, MAX_PACKAGES).map((packageName) => ({
+    id: crypto.randomUUID(),
+    value: packageName,
+    searchQuery: "",
+    submittedValue: packageName,
+  }));
+}
 
 export interface PackageColumnState {
   id: string;
@@ -23,9 +50,24 @@ export interface UsePackageColumnReturn {
 }
 
 export function usePackageColumn(): UsePackageColumnReturn {
-  const [columns, setColumns] = useState<PackageColumnState[]>([
-    { id: crypto.randomUUID(), value: "", searchQuery: "", submittedValue: "" },
-  ]);
+  const [columns, setColumns] =
+    useState<PackageColumnState[]>(createInitialColumns);
+
+  // Extract submitted package names for URL sync
+  const submittedPackages = useMemo(
+    () =>
+      columns
+        .map((col) => col.submittedValue.trim())
+        .filter((name) => name.length > 0),
+    [columns],
+  );
+
+  // Sync URL when submitted packages change
+  useEffect(() => {
+    updateUrlWithPackages(
+      submittedPackages.map((name) => ({ ecosystem: "npm" as const, name })),
+    );
+  }, [submittedPackages]);
 
   const addColumn = () => {
     if (columns.length >= MAX_PACKAGES) return;
