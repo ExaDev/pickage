@@ -3,35 +3,79 @@
  * Endpoint: GET https://api.npms.io/v2/package/{package-name}
  */
 export interface NpmsPackageResponse {
-  name: string;
-  version: string;
-  description: string;
-  homepage: string;
-  repository: {
-    type: string;
-    url: string;
-  } | null;
-  keywords: string[];
-  links: {
-    npm: string;
-    homepage: string | null;
-    repository: string | null;
-    bugs: string | null;
+  analyzedAt: string;
+  collected: {
+    metadata: {
+      name: string;
+      version: string;
+      description: string | null;
+      keywords: string[];
+      license: string;
+      dependencies: Record<string, string>;
+      devDependencies: Record<string, string>;
+      peerDependencies: Record<string, string>;
+      links: {
+        npm: string;
+        homepage: string | null;
+        repository: string | null;
+        bugs: string | null;
+      };
+      author: {
+        name: string;
+        email?: string;
+        url?: string;
+      } | null;
+      maintainers: Array<{
+        name: string;
+        email?: string;
+      }>;
+    };
+    npm: {
+      downloads: Array<{
+        from: string;
+        to: string;
+        count: number;
+      }>;
+      dependentsCount: number;
+      starsCount: number;
+    };
+    github?: {
+      starsCount: number;
+      forksCount: number;
+      subscribersCount: number;
+      issues: {
+        count: number;
+        openCount: number;
+        distribution: Record<string, number>;
+        isDisabled: boolean;
+      };
+      commits: Array<{
+        from: string;
+        to: string;
+        count: number;
+      }>;
+    };
   };
-  author: {
-    name: string;
-    email?: string;
-    url?: string;
-  } | null;
-  license: string;
-  maintainers: Array<{
-    name: string;
-    email?: string;
-  }>;
-  dependencies: Record<string, string>;
-  devDependencies: Record<string, string>;
-  peerDependencies: Record<string, string>;
-  // Enriched data from npms.io analysis
+  evaluation: {
+    quality: {
+      carefulness: number;
+      tests: number;
+      health: number;
+      branding: number;
+    };
+    popularity: {
+      communityInterest: number;
+      downloadsCount: number;
+      downloadsAcceleration: number;
+      dependentsCount: number;
+    };
+    maintenance: {
+      releasesFrequency: number;
+      commitsFrequency: number;
+      openIssues: number;
+      issuesDistribution: number;
+    };
+  };
   score: {
     final: number;
     detail: {
@@ -40,7 +84,6 @@ export interface NpmsPackageResponse {
       maintenance: number;
     };
   };
-  time: string;
 }
 
 /**
