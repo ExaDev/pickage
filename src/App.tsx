@@ -1,20 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box } from "@mantine/core";
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { theme } from "./theme";
 import { usePackageColumn } from "./hooks/usePackageColumn";
+import { getInitialSortFromUrl, parseSortFromUrl } from "./hooks/useUrlSync";
 import { PackageComparisonLayout } from "./components/comparison/PackageComparisonLayout";
 import { StickyInputBar } from "./components/comparison/StickyInputBar";
 import type { ViewMode } from "./types/views";
+import type { SortCriterion } from "./types/sort";
 
 // Header height for viewport calculations
 const HEADER_HEIGHT = 56;
 
 function App() {
-  const { packages, addPackage, removePackage, canRemove } = usePackageColumn();
-  const packageNames = packages.map((pkg) => pkg.packageName);
   const [viewMode, setViewMode] = useState<ViewMode>("carousel");
+  const [sortCriteria, setSortCriteria] = useState<SortCriterion[]>(
+    getInitialSortFromUrl,
+  );
+
+  // Pass sortCriteria to usePackageColumn for URL sync coordination
+  const { packages, addPackage, removePackage, canRemove } = usePackageColumn({
+    sortCriteria,
+  });
+  const packageNames = packages.map((pkg) => pkg.packageName);
+
+  // Handle browser back/forward for sort criteria
+  useEffect(() => {
+    const handlePopstate = () => {
+      const urlSort = parseSortFromUrl();
+      setSortCriteria(urlSort);
+    };
+
+    window.addEventListener("popstate", handlePopstate);
+    return () => {
+      window.removeEventListener("popstate", handlePopstate);
+    };
+  }, []);
 
   const handleClear = () => {
     // Remove all packages
@@ -73,6 +95,8 @@ function App() {
           viewMode={viewMode}
           removePackage={removePackage}
           canRemove={canRemove}
+          sortCriteria={sortCriteria}
+          onSortChange={setSortCriteria}
         />
       </Box>
     </MantineProvider>

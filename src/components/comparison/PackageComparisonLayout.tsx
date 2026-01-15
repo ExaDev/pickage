@@ -2,8 +2,10 @@ import { useEffect, useRef } from "react";
 import { Box } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { usePackageComparison } from "@/hooks/usePackageComparison";
+import { useSortedPackages } from "@/hooks/useSortedPackages";
 import type { PackageColumnState } from "@/hooks/usePackageColumn";
 import type { ViewMode } from "@/types/views";
+import type { SortCriterion } from "@/types/sort";
 import { EmptyState } from "./EmptyState";
 import { CarouselView, GridView, ListView, TableView } from "./views";
 
@@ -59,6 +61,8 @@ interface PackageComparisonLayoutProps {
   viewMode: ViewMode;
   removePackage: (id: string) => void;
   canRemove: boolean;
+  sortCriteria: SortCriterion[];
+  onSortChange: (criteria: SortCriterion[]) => void;
 }
 
 export function PackageComparisonLayout({
@@ -66,6 +70,8 @@ export function PackageComparisonLayout({
   viewMode,
   removePackage,
   canRemove,
+  sortCriteria,
+  onSortChange,
 }: PackageComparisonLayoutProps) {
   // Extract package names for data fetching
   const packageNames = packageColumns.map((pkg) => pkg.packageName);
@@ -112,6 +118,13 @@ export function PackageComparisonLayout({
     });
   }, [failedPackages, packageColumns, removePackage]);
 
+  // Sort packages based on criteria
+  const sortedPackages = useSortedPackages(
+    packageColumns,
+    packagesData,
+    sortCriteria,
+  );
+
   // Calculate winner metrics
   const validPackages = packagesData.filter((pkg) =>
     packageNames.includes(pkg.name),
@@ -139,7 +152,7 @@ export function PackageComparisonLayout({
 
   // Shared props for all view components
   const viewProps = {
-    packages: packageColumns,
+    packages: sortedPackages,
     packagesData,
     isLoading,
     winnerMetrics,
@@ -153,6 +166,9 @@ export function PackageComparisonLayout({
     // Legacy
     refetchingPackages,
     onRefresh: refetchPackage,
+    // Sorting
+    sortCriteria,
+    onSortChange,
   };
 
   // Render view in full-height container
