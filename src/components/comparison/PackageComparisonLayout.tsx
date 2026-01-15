@@ -100,7 +100,7 @@ export function PackageComparisonLayout({
   }
 
   if (isMobile) {
-    // Mobile layout: Horizontal scroll
+    // Mobile layout: Horizontal scroll with wider columns
     return (
       <Stack gap="xl">
         <ScrollArea.Autosize type="scroll" offsetScrollbars>
@@ -116,7 +116,7 @@ export function PackageComparisonLayout({
               return (
                 <Box
                   key={pkg.id}
-                  style={{ minWidth: "280px", flexShrink: 0, width: "280px" }}
+                  style={{ minWidth: "320px", flexShrink: 0, width: "320px" }}
                 >
                   <PackageColumn
                     packageName={pkg.packageName}
@@ -137,21 +137,44 @@ export function PackageComparisonLayout({
     );
   }
 
-  // Desktop layout: Horizontal scroll with centered columns
+  // Desktop layout: Flexible columns that expand to use available space
+  // For 1-2 packages: expand to fill width (max 600px for readability)
+  // For 3+ packages: horizontal scroll with wider columns
+  const columnCount = packageColumns.length;
+  const useFlexibleLayout = columnCount <= 2;
+
   return (
     <Stack gap="xl">
       <ScrollArea.Autosize type="scroll" offsetScrollbars>
         <Flex
           gap="xl"
           justify="center"
-          style={{ minWidth: "min-content", paddingBottom: "16px" }}
+          style={{
+            minWidth: "min-content",
+            paddingBottom: "16px",
+            width: useFlexibleLayout ? "100%" : undefined,
+          }}
         >
           {packageColumns.map((pkg) => {
             const packageStats =
               packagesData.find((p) => p.name === pkg.packageName) ?? null;
 
             return (
-              <Box key={pkg.id} style={{ width: "350px", flexShrink: 0 }}>
+              <Box
+                key={pkg.id}
+                style={
+                  useFlexibleLayout
+                    ? {
+                        flex: 1,
+                        minWidth: "350px",
+                        maxWidth: "600px",
+                      }
+                    : {
+                        width: "450px",
+                        flexShrink: 0,
+                      }
+                }
+              >
                 <PackageColumn
                   packageName={pkg.packageName}
                   packageStats={packageStats}
