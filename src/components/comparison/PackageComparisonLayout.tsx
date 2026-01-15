@@ -1,9 +1,10 @@
-import { Box, Flex, ScrollArea } from "@mantine/core";
+import { Box, Flex, ScrollArea, Stack } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { usePackageColumn } from "@/hooks/usePackageColumn";
 import { usePackageComparison } from "@/hooks/usePackageComparison";
 import { PackageColumn } from "./PackageColumn";
 import { AddColumnButton } from "./AddColumnButton";
+import { ReadmeAccordion } from "@/components/ui/ReadmeAccordion";
 
 const MOBILE_BREAKPOINT = 1024;
 
@@ -94,107 +95,126 @@ export function PackageComparisonLayout() {
 
   const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
 
+  // Check if any packages have READMEs to show
+  const packagesWithData = packages.filter((pkg) =>
+    packageNames.includes(pkg.name),
+  );
+
   if (isMobile) {
     // Mobile layout: Horizontal scroll
     return (
-      <ScrollArea.Autosize type="scroll" offsetScrollbars>
-        <Flex
-          gap="md"
-          justify="center"
-          style={{ minWidth: "min-content", paddingBottom: "16px" }}
-        >
-          {columns.map((col) => {
-            const packageName = col.submittedValue.trim();
-            const packageStats =
-              packageName && packageNames.includes(packageName)
-                ? (packages.find((p) => p.name === packageName) ?? null)
-                : null;
+      <Stack gap="xl">
+        <ScrollArea.Autosize type="scroll" offsetScrollbars>
+          <Flex
+            gap="md"
+            justify="center"
+            style={{ minWidth: "min-content", paddingBottom: "16px" }}
+          >
+            {columns.map((col) => {
+              const packageName = col.submittedValue.trim();
+              const packageStats =
+                packageName && packageNames.includes(packageName)
+                  ? (packages.find((p) => p.name === packageName) ?? null)
+                  : null;
 
-            return (
-              <Box
-                key={col.id}
-                style={{ minWidth: "280px", flexShrink: 0, width: "280px" }}
-              >
-                <PackageColumn
-                  columnState={col}
-                  index={columns.indexOf(col)}
-                  packageStats={packageStats}
-                  isLoading={isLoading && !!packageName}
-                  showRemove={canRemove}
-                  winnerMetrics={
-                    packageName ? winnerMetrics[packageName] : undefined
-                  }
-                  onUpdate={(updates) => {
-                    updateColumn(col.id, updates);
-                  }}
-                  onRemove={() => {
-                    removeColumn(col.id);
-                  }}
-                />
-              </Box>
-            );
-          })}
-        </Flex>
-        <AddColumnButton
-          onClick={addColumn}
-          disabled={!canAddMore}
-          currentColumnCount={columns.length}
-        />
-      </ScrollArea.Autosize>
+              return (
+                <Box
+                  key={col.id}
+                  style={{ minWidth: "280px", flexShrink: 0, width: "280px" }}
+                >
+                  <PackageColumn
+                    columnState={col}
+                    index={columns.indexOf(col)}
+                    packageStats={packageStats}
+                    isLoading={isLoading && !!packageName}
+                    showRemove={canRemove}
+                    winnerMetrics={
+                      packageName ? winnerMetrics[packageName] : undefined
+                    }
+                    onUpdate={(updates) => {
+                      updateColumn(col.id, updates);
+                    }}
+                    onRemove={() => {
+                      removeColumn(col.id);
+                    }}
+                  />
+                </Box>
+              );
+            })}
+          </Flex>
+          <AddColumnButton
+            onClick={addColumn}
+            disabled={!canAddMore}
+            currentColumnCount={columns.length}
+          />
+        </ScrollArea.Autosize>
+
+        {/* README Section */}
+        {packagesWithData.length > 0 && (
+          <ReadmeAccordion packages={packagesWithData} />
+        )}
+      </Stack>
     );
   }
 
   // Desktop layout: Horizontal scroll with centered columns
   return (
-    <Box pos="relative">
-      <ScrollArea.Autosize type="scroll" offsetScrollbars>
-        <Flex
-          gap="xl"
-          justify="center"
-          style={{ minWidth: "min-content", paddingBottom: "16px" }}
-        >
-          {columns.map((col) => {
-            const packageName = col.submittedValue.trim();
-            const packageStats =
-              packageName && packageNames.includes(packageName)
-                ? (packages.find((p) => p.name === packageName) ?? null)
-                : null;
+    <Stack gap="xl">
+      <Box pos="relative">
+        <ScrollArea.Autosize type="scroll" offsetScrollbars>
+          <Flex
+            gap="xl"
+            justify="center"
+            style={{ minWidth: "min-content", paddingBottom: "16px" }}
+          >
+            {columns.map((col) => {
+              const packageName = col.submittedValue.trim();
+              const packageStats =
+                packageName && packageNames.includes(packageName)
+                  ? (packages.find((p) => p.name === packageName) ?? null)
+                  : null;
 
-            return (
-              <Box key={col.id} style={{ width: "350px", flexShrink: 0 }}>
-                <PackageColumn
-                  columnState={col}
-                  index={columns.indexOf(col)}
-                  packageStats={packageStats}
-                  isLoading={isLoading && !!packageName}
-                  showRemove={canRemove}
-                  winnerMetrics={
-                    packageName ? winnerMetrics[packageName] : undefined
-                  }
-                  onUpdate={(updates) => {
-                    updateColumn(col.id, updates);
-                  }}
-                  onRemove={() => {
-                    removeColumn(col.id);
-                  }}
-                />
-              </Box>
-            );
-          })}
-        </Flex>
-      </ScrollArea.Autosize>
-      <Box
-        pos="absolute"
-        right="0"
-        top="50%"
-        style={{ transform: "translateY(-50%)" }}
-      >
-        <AddColumnButton
-          onClick={addColumn}
-          disabled={!canAddMore}
-          currentColumnCount={columns.length}
-        />
+              return (
+                <Box key={col.id} style={{ width: "350px", flexShrink: 0 }}>
+                  <PackageColumn
+                    columnState={col}
+                    index={columns.indexOf(col)}
+                    packageStats={packageStats}
+                    isLoading={isLoading && !!packageName}
+                    showRemove={canRemove}
+                    winnerMetrics={
+                      packageName ? winnerMetrics[packageName] : undefined
+                    }
+                    onUpdate={(updates) => {
+                      updateColumn(col.id, updates);
+                    }}
+                    onRemove={() => {
+                      removeColumn(col.id);
+                    }}
+                  />
+                </Box>
+              );
+            })}
+          </Flex>
+        </ScrollArea.Autosize>
+        <Box
+          pos="absolute"
+          right="0"
+          top="50%"
+          style={{ transform: "translateY(-50%)" }}
+        >
+          <AddColumnButton
+            onClick={addColumn}
+            disabled={!canAddMore}
+            currentColumnCount={columns.length}
+          />
+        </Box>
       </Box>
-    </Box>
+
+      {/* README Section */}
+      {packagesWithData.length > 0 && (
+        <ReadmeAccordion packages={packagesWithData} />
+      )}
+    </Stack>
   );
 }
