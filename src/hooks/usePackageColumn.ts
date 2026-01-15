@@ -1,6 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { notifications } from "@mantine/notifications";
-import { getInitialPackagesFromUrl, updateUrlWithPackages } from "./useUrlSync";
+import {
+  getInitialPackagesFromUrl,
+  updateUrlWithPackages,
+  parsePackagesFromUrl,
+} from "./useUrlSync";
 
 // No minimum - users can have 0 packages (shows empty state)
 
@@ -37,18 +41,43 @@ export function usePackageColumn(): UsePackageColumnReturn {
     createInitialPackages,
   );
 
+  // Track if we're handling a popstate to avoid pushing duplicate history
+  const isHandlingPopstate = useRef(false);
+
   // Extract package names for URL sync
   const packageNames = useMemo(
     () => packages.map((pkg) => pkg.packageName),
     [packages],
   );
 
-  // Sync URL when packages change
+  // Sync URL when packages change (skip during popstate handling)
   useEffect(() => {
+    if (isHandlingPopstate.current) {
+      isHandlingPopstate.current = false;
+      return;
+    }
     updateUrlWithPackages(
       packageNames.map((name) => ({ ecosystem: "npm" as const, name })),
     );
   }, [packageNames]);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopstate = () => {
+      isHandlingPopstate.current = true;
+      const urlPackages = parsePackagesFromUrl();
+      const newPackages = urlPackages.map((pkg) => ({
+        id: crypto.randomUUID(),
+        packageName: pkg.name,
+      }));
+      setPackages(newPackages);
+    };
+
+    window.addEventListener("popstate", handlePopstate);
+    return () => {
+      window.removeEventListener("popstate", handlePopstate);
+    };
+  }, []);
 
   const addPackage = (name: string) => {
     const trimmedName = name.trim();

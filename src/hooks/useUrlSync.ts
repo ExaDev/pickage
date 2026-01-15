@@ -56,22 +56,25 @@ export function serializePackagesToUrl(packages: UrlPackage[]): string {
 }
 
 /**
- * Update URL without triggering navigation
- * Uses replaceState to avoid polluting browser history
+ * Update URL and create browser history entry
+ * Uses pushState to enable back/forward navigation for undo/redo
  * Manually constructs URL to avoid encoding colons and commas for readability
  */
 export function updateUrlWithPackages(packages: UrlPackage[]): void {
   const { origin, pathname } = window.location;
+  const currentUrl = window.location.href;
 
+  let newUrl: string;
   if (packages.length === 0) {
-    window.history.replaceState({}, "", `${origin}${pathname}`);
+    newUrl = `${origin}${pathname}`;
   } else {
     const packagesParam = serializePackagesToUrl(packages);
-    window.history.replaceState(
-      {},
-      "",
-      `${origin}${pathname}?packages=${packagesParam}`,
-    );
+    newUrl = `${origin}${pathname}?packages=${packagesParam}`;
+  }
+
+  // Only push if URL actually changed
+  if (newUrl !== currentUrl) {
+    window.history.pushState({}, "", newUrl);
   }
 }
 
