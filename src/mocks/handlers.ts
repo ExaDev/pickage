@@ -58,8 +58,8 @@ function createPackageDetails(
           email: "mock@example.com",
         },
         maintainers: [
-          { name: "maintainer1", email: "m1@example.com" },
-          { name: "maintainer2", email: "m2@example.com" },
+          { username: "maintainer1", email: "m1@example.com" },
+          { username: "maintainer2", email: "m2@example.com" },
         ],
       },
       npm: {

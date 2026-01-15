@@ -129,7 +129,12 @@ export class NpmAdapter implements EcosystemAdapter {
       },
       // Author and maintainers
       author: metadata.author ?? null,
-      maintainers: metadata.maintainers,
+      maintainers: metadata.maintainers
+        .map((m) => ({
+          name: m.name || m.username || "",
+          email: m.email,
+        }))
+        .filter((m) => m.name),
       // Links
       links: {
         npm: links.npm,

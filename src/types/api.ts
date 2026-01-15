@@ -26,7 +26,8 @@ export interface NpmsPackageResponse {
         url?: string;
       } | null;
       maintainers: Array<{
-        name: string;
+        name?: string;
+        username?: string;
         email?: string;
       }>;
     };
