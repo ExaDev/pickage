@@ -144,39 +144,45 @@ export function PackageComparisonLayout() {
     );
   }
 
-  // Desktop layout: Flex wrap with centered columns
+  // Desktop layout: Horizontal scroll with centered columns
   return (
     <Box pos="relative">
-      <Flex gap="xl" wrap="wrap" justify="center">
-        {columns.map((col) => {
-          const packageName = col.value.trim();
-          const packageStats =
-            packageName && packageNames.includes(packageName)
-              ? (packages.find((p) => p.name === packageName) ?? null)
-              : null;
+      <ScrollArea.Autosize type="scroll" offsetScrollbars>
+        <Flex
+          gap="xl"
+          justify="center"
+          style={{ minWidth: "min-content", paddingBottom: "16px" }}
+        >
+          {columns.map((col) => {
+            const packageName = col.value.trim();
+            const packageStats =
+              packageName && packageNames.includes(packageName)
+                ? (packages.find((p) => p.name === packageName) ?? null)
+                : null;
 
-          return (
-            <Box key={col.id} style={{ width: "350px", flexShrink: 0 }}>
-              <PackageColumn
-                columnState={col}
-                index={columns.indexOf(col)}
-                packageStats={packageStats}
-                isLoading={isLoading && !!packageName}
-                showRemove={canRemove}
-                winnerMetrics={
-                  packageName ? winnerMetrics[packageName] : undefined
-                }
-                onUpdate={(updates) => {
-                  updateColumn(col.id, updates);
-                }}
-                onRemove={() => {
-                  removeColumn(col.id);
-                }}
-              />
-            </Box>
-          );
-        })}
-      </Flex>
+            return (
+              <Box key={col.id} style={{ width: "350px", flexShrink: 0 }}>
+                <PackageColumn
+                  columnState={col}
+                  index={columns.indexOf(col)}
+                  packageStats={packageStats}
+                  isLoading={isLoading && !!packageName}
+                  showRemove={canRemove}
+                  winnerMetrics={
+                    packageName ? winnerMetrics[packageName] : undefined
+                  }
+                  onUpdate={(updates) => {
+                    updateColumn(col.id, updates);
+                  }}
+                  onRemove={() => {
+                    removeColumn(col.id);
+                  }}
+                />
+              </Box>
+            );
+          })}
+        </Flex>
+      </ScrollArea.Autosize>
       <Box
         pos="absolute"
         right="0"
