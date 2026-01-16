@@ -131,6 +131,17 @@ export function StickyInputBar({
     }
   };
 
+  const handleSearchBlur = () => {
+    // Collapse search on blur if input is empty or whitespace-only (mobile only)
+    if (isMobile && !inputValue.trim()) {
+      // Small delay to allow click events on buttons to fire first
+      setTimeout(() => {
+        setInputValue("");
+        setIsSearchExpanded(false);
+      }, 150);
+    }
+  };
+
   return (
     <Paper
       shadow={isScrolled ? "md" : "none"}
@@ -203,6 +214,7 @@ export function StickyInputBar({
                   onChange={setInputValue}
                   onOptionSubmit={handleOptionSubmit}
                   onKeyDown={handleKeyDown}
+                  onBlur={handleSearchBlur}
                   data={suggestions}
                   limit={8}
                   size="sm"
