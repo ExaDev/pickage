@@ -1,3 +1,9 @@
+# [1.6.0](https://github.com/ExaDev/peek-package/compare/v1.5.0...v1.6.0) (2026-01-16)
+
+### Features
+
+- **ui:** display app version in top bar ([33353a3](https://github.com/ExaDev/peek-package/commit/33353a3680e2cc7484302ea48e1b6e9472ce363d))
+
 # [1.5.0](https://github.com/ExaDev/peek-package/compare/v1.4.0...v1.5.0) (2026-01-16)
 
 ### Bug Fixes
