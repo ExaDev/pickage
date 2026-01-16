@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ActionIcon,
   Autocomplete,
@@ -12,7 +12,7 @@ import {
   Title,
   Tooltip,
 } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { useClickOutside, useMediaQuery } from "@mantine/hooks";
 import {
   IconCheck,
   IconLayoutColumns,
@@ -20,8 +20,10 @@ import {
   IconLayoutList,
   IconMenu2,
   IconPlus,
+  IconSearch,
   IconTable,
   IconTrash,
+  IconX,
 } from "@tabler/icons-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePackageSearch } from "@/hooks/usePackageSearch";
@@ -48,7 +50,21 @@ export function StickyInputBar({
 }: StickyInputBarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Close search when clicking outside on mobile
+  useClickOutside(
+    () => {
+      if (isMobile && isSearchExpanded && !inputValue) {
+        setIsSearchExpanded(false);
+      }
+    },
+    null,
+    [searchRef.current],
+  );
 
   // Debounce the search query to avoid excessive API calls
   const debouncedSearchQuery = useDebounce(inputValue, DEBOUNCE_DELAY);
@@ -78,6 +94,9 @@ export function StickyInputBar({
     if (inputValue.trim()) {
       onAddPackage(inputValue.trim());
       setInputValue("");
+      if (isMobile) {
+        setIsSearchExpanded(false);
+      }
     }
   };
 
@@ -86,7 +105,23 @@ export function StickyInputBar({
     // Use setTimeout to clear after Mantine's internal onChange fires
     setTimeout(() => {
       setInputValue("");
+      if (isMobile) {
+        setIsSearchExpanded(false);
+      }
     }, 0);
+  };
+
+  const handleExpandSearch = () => {
+    setIsSearchExpanded(true);
+    // Focus input after expanding
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
+  };
+
+  const handleCollapseSearch = () => {
+    setInputValue("");
+    setIsSearchExpanded(false);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -123,53 +158,141 @@ export function StickyInputBar({
             wrap="nowrap"
             style={{ flex: 1, minWidth: 0 }}
           >
-            {/* Hide title on mobile to save space */}
+            {/* Mobile: Show title when search is collapsed, hide when expanded */}
+            {isMobile && !isSearchExpanded && (
+              <Title order={4} style={{ whiteSpace: "nowrap" }}>
+                PeekPackage
+              </Title>
+            )}
+
+            {/* Desktop: Always show title */}
             {!isMobile && (
               <Title order={4} style={{ whiteSpace: "nowrap" }}>
                 PeekPackage
               </Title>
             )}
 
-            {/* Search input */}
-            <Group gap="xs" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-              <Autocomplete
-                placeholder={isMobile ? "Search..." : "Search packages..."}
-                value={inputValue}
-                onChange={setInputValue}
-                onOptionSubmit={handleOptionSubmit}
-                onKeyDown={handleKeyDown}
-                data={suggestions}
-                limit={8}
-                style={{ flex: 1, minWidth: isMobile ? 100 : 200 }}
-                rightSection={isLoading ? <div style={{ width: 16 }} /> : null}
-                renderOption={({ option }) => {
-                  const description = (option as { description?: string })
-                    .description;
-                  return (
-                    <div>
-                      <div style={{ fontWeight: 500 }}>{option.value}</div>
-                      {typeof description === "string" && (
-                        <div style={{ fontSize: "0.85em", opacity: 0.7 }}>
-                          {description}
-                        </div>
-                      )}
-                    </div>
-                  );
-                }}
-              />
-              <Tooltip label="Add package to comparison">
+            {/* Mobile: Search icon when collapsed */}
+            {isMobile && !isSearchExpanded && (
+              <Tooltip label="Search packages">
                 <ActionIcon
                   color="brand"
-                  variant="filled"
-                  size={isMobile ? "md" : "lg"}
-                  onClick={handleAdd}
-                  disabled={!inputValue.trim()}
-                  aria-label="Add package"
+                  variant="subtle"
+                  size="md"
+                  onClick={handleExpandSearch}
+                  aria-label="Open search"
                 >
-                  <IconPlus size={isMobile ? 18 : 20} />
+                  <IconSearch size={20} />
                 </ActionIcon>
               </Tooltip>
-            </Group>
+            )}
+
+            {/* Mobile: Expanded search bar */}
+            {isMobile && isSearchExpanded && (
+              <Group
+                ref={searchRef}
+                gap="xs"
+                wrap="nowrap"
+                style={{ flex: 1, minWidth: 0 }}
+              >
+                <Autocomplete
+                  ref={inputRef}
+                  placeholder="Search packages..."
+                  value={inputValue}
+                  onChange={setInputValue}
+                  onOptionSubmit={handleOptionSubmit}
+                  onKeyDown={handleKeyDown}
+                  data={suggestions}
+                  limit={8}
+                  style={{ flex: 1 }}
+                  rightSection={
+                    isLoading ? <div style={{ width: 16 }} /> : null
+                  }
+                  renderOption={({ option }) => {
+                    const description = (option as { description?: string })
+                      .description;
+                    return (
+                      <div>
+                        <div style={{ fontWeight: 500 }}>{option.value}</div>
+                        {typeof description === "string" && (
+                          <div style={{ fontSize: "0.85em", opacity: 0.7 }}>
+                            {description}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+                <Tooltip label="Add package">
+                  <ActionIcon
+                    color="brand"
+                    variant="filled"
+                    size="md"
+                    onClick={handleAdd}
+                    disabled={!inputValue.trim()}
+                    aria-label="Add package"
+                  >
+                    <IconPlus size={18} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Close search">
+                  <ActionIcon
+                    color="gray"
+                    variant="subtle"
+                    size="md"
+                    onClick={handleCollapseSearch}
+                    aria-label="Close search"
+                  >
+                    <IconX size={18} />
+                  </ActionIcon>
+                </Tooltip>
+              </Group>
+            )}
+
+            {/* Desktop: Always show search input */}
+            {!isMobile && (
+              <Group gap="xs" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                <Autocomplete
+                  placeholder="Search packages..."
+                  value={inputValue}
+                  onChange={setInputValue}
+                  onOptionSubmit={handleOptionSubmit}
+                  onKeyDown={handleKeyDown}
+                  data={suggestions}
+                  limit={8}
+                  style={{ flex: 1, minWidth: 200 }}
+                  rightSection={
+                    isLoading ? <div style={{ width: 16 }} /> : null
+                  }
+                  renderOption={({ option }) => {
+                    const description = (option as { description?: string })
+                      .description;
+                    return (
+                      <div>
+                        <div style={{ fontWeight: 500 }}>{option.value}</div>
+                        {typeof description === "string" && (
+                          <div style={{ fontSize: "0.85em", opacity: 0.7 }}>
+                            {description}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+                <Tooltip label="Add package to comparison">
+                  <ActionIcon
+                    color="brand"
+                    variant="filled"
+                    size="lg"
+                    onClick={handleAdd}
+                    disabled={!inputValue.trim()}
+                    aria-label="Add package"
+                  >
+                    <IconPlus size={20} />
+                  </ActionIcon>
+                </Tooltip>
+              </Group>
+            )}
 
             {/* Package badges - hide on mobile */}
             {!isMobile && packages.length > 0 && (
