@@ -152,6 +152,7 @@ export function StickyInputBar({
           justify="space-between"
           wrap="nowrap"
           gap={isMobile ? "xs" : "md"}
+          style={{ minHeight: 36 }}
         >
           <Group
             gap={isMobile ? "xs" : "md"}
@@ -204,6 +205,7 @@ export function StickyInputBar({
                   onKeyDown={handleKeyDown}
                   data={suggestions}
                   limit={8}
+                  size="sm"
                   style={{ flex: 1 }}
                   rightSection={
                     isLoading ? <div style={{ width: 16 }} /> : null
@@ -227,23 +229,23 @@ export function StickyInputBar({
                   <ActionIcon
                     color="brand"
                     variant="filled"
-                    size="md"
+                    size="sm"
                     onClick={handleAdd}
                     disabled={!inputValue.trim()}
                     aria-label="Add package"
                   >
-                    <IconPlus size={18} />
+                    <IconPlus size={16} />
                   </ActionIcon>
                 </Tooltip>
                 <Tooltip label="Close search">
                   <ActionIcon
                     color="gray"
                     variant="subtle"
-                    size="md"
+                    size="sm"
                     onClick={handleCollapseSearch}
                     aria-label="Close search"
                   >
-                    <IconX size={18} />
+                    <IconX size={16} />
                   </ActionIcon>
                 </Tooltip>
               </Group>
