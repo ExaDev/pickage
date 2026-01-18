@@ -1,4 +1,8 @@
-import { useQueries, useQueryClient } from "@tanstack/react-query";
+import {
+  useQueries,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { useCallback, useMemo, useEffect, useRef } from "react";
 import { NpmAdapter } from "@/adapters/npm";
 import { PyPiAdapter } from "@/adapters/pypi";
@@ -42,6 +46,8 @@ export function usePackage(
         enabled: enabled && !!packageName,
         staleTime: STALE_TIME,
         gcTime: GC_TIME,
+        // Keep showing stale data while refetching, even if refetch fails
+        placeholderData: keepPreviousData,
       },
     ],
   })[0];
@@ -80,6 +86,8 @@ export function usePackageComparison(packages: PackageRequest[]) {
       staleTime: STALE_TIME,
       gcTime: GC_TIME,
       retry: 1,
+      // Keep showing stale data while refetching, even if refetch fails
+      placeholderData: keepPreviousData,
     })),
   });
 
@@ -112,6 +120,8 @@ export function usePackageComparison(packages: PackageRequest[]) {
       staleTime: STALE_TIME,
       gcTime: GC_TIME,
       retry: 1,
+      // Keep showing stale GitHub data while refetching, even if refetch fails
+      placeholderData: keepPreviousData,
     })),
   });
 
@@ -192,7 +202,11 @@ export function usePackageComparison(packages: PackageRequest[]) {
   useEffect(() => {
     if (packagesData.length === 0) return;
 
-    let needsUpdate = false;
+    const packagesToNormalize: Array<{
+      ecosystem: "npm" | "pypi";
+      originalName: string;
+      canonicalName: string;
+    }> = [];
     const urlPackages: Array<{ ecosystem: "npm" | "pypi"; name: string }> = [];
 
     packagesData.forEach((stats, index) => {
@@ -204,7 +218,7 @@ export function usePackageComparison(packages: PackageRequest[]) {
       if (originalName !== canonicalName) {
         if (!normalizedRef.current.has(`${ecosystem}:${originalName}`)) {
           normalizedRef.current.add(`${ecosystem}:${originalName}`);
-          needsUpdate = true;
+          packagesToNormalize.push({ ecosystem, originalName, canonicalName });
         }
         urlPackages.push({ ecosystem, name: canonicalName });
       } else {
@@ -212,14 +226,16 @@ export function usePackageComparison(packages: PackageRequest[]) {
       }
     });
 
-    if (needsUpdate) {
+    if (packagesToNormalize.length > 0) {
       // Get current sort criteria from URL
       const urlParams = new URLSearchParams(window.location.search);
       const sortParam = urlParams.get("sort");
 
       // Update URL with canonical names (use replaceState to not add history entry)
       const params: string[] = [];
-      params.push(`packages=${urlPackages.map((p) => `${p.ecosystem}:${p.name}`).join(",")}`);
+      params.push(
+        `packages=${urlPackages.map((p) => `${p.ecosystem}:${p.name}`).join(",")}`,
+      );
       if (sortParam) {
         params.push(`sort=${sortParam}`);
       }
