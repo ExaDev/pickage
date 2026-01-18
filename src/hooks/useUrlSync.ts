@@ -8,7 +8,7 @@ import type { SortCriterion, SortField } from "@/types/sort";
  */
 
 export interface UrlPackage {
-  ecosystem: "npm";
+  ecosystem: "npm" | "pypi";
   name: string;
 }
 
@@ -52,12 +52,12 @@ export function parsePackagesFromUrl(): UrlPackage[] {
       const ecosystem = entry.slice(0, colonIndex);
       const name = entry.slice(colonIndex + 1);
 
-      // Currently only npm is supported
-      if (ecosystem !== "npm") {
-        console.warn(`Unsupported ecosystem: ${ecosystem}, defaulting to npm`);
-        return { ecosystem: "npm" as const, name };
+      // Support both npm and pypi ecosystems
+      if (ecosystem === "npm" || ecosystem === "pypi") {
+        return { ecosystem: ecosystem, name };
       }
 
+      console.warn(`Unsupported ecosystem: ${ecosystem}, defaulting to npm`);
       return { ecosystem: "npm" as const, name };
     })
     .filter((pkg) => pkg.name.length > 0);
@@ -156,6 +156,7 @@ export function updateUrlWithPackages(
  * Hook to sync package state with URL
  * Returns initial packages from URL and a function to update URL
  */
+// Note: This hook is deprecated. Use usePackageColumn instead for ecosystem support.
 export function useUrlSync(
   submittedPackages: string[],
   sortCriteria: SortCriterion[] = [],
@@ -195,16 +196,16 @@ export function useUrlSync(
  * Get initial packages from URL (call once on app load)
  * Deduplicates packages (case-insensitive, preserving first occurrence)
  */
-export function getInitialPackagesFromUrl(): string[] {
+export function getInitialPackagesFromUrl(): UrlPackage[] {
   const urlPackages = parsePackagesFromUrl();
   const seen = new Set<string>();
-  const uniquePackages: string[] = [];
+  const uniquePackages: UrlPackage[] = [];
 
   for (const pkg of urlPackages) {
     const lowerName = pkg.name.toLowerCase();
     if (!seen.has(lowerName)) {
       seen.add(lowerName);
-      uniquePackages.push(pkg.name);
+      uniquePackages.push(pkg);
     }
   }
 

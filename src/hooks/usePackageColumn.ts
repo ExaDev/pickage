@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { notifications } from "@mantine/notifications";
 import {
   getInitialPackagesFromUrl,
   updateUrlWithPackages,
   parsePackagesFromUrl,
 } from "./useUrlSync";
+import { detectPackageEcosystem } from "@/utils/parseDependencies";
 import type { SortCriterion } from "@/types/sort";
 
 // No minimum - users can have 0 packages (shows empty state)
@@ -19,15 +20,17 @@ function createInitialPackages(): PackageColumnState[] {
     return [];
   }
 
-  return urlPackages.map((packageName) => ({
+  return urlPackages.map((pkg) => ({
     id: crypto.randomUUID(),
-    packageName,
+    packageName: pkg.name,
+    ecosystem: pkg.ecosystem,
   }));
 }
 
 export interface PackageColumnState {
   id: string;
   packageName: string;
+  ecosystem: "npm" | "pypi";
 }
 
 export interface UsePackageColumnReturn {
@@ -53,12 +56,6 @@ export function usePackageColumn(
   // Track if we're handling a popstate to avoid pushing duplicate history
   const isHandlingPopstate = useRef(false);
 
-  // Extract package names for URL sync
-  const packageNames = useMemo(
-    () => packages.map((pkg) => pkg.packageName),
-    [packages],
-  );
-
   // Sync URL when packages or sort criteria change (skip during popstate handling)
   useEffect(() => {
     if (isHandlingPopstate.current) {
@@ -66,10 +63,13 @@ export function usePackageColumn(
       return;
     }
     updateUrlWithPackages(
-      packageNames.map((name) => ({ ecosystem: "npm" as const, name })),
+      packages.map((pkg) => ({
+        ecosystem: pkg.ecosystem,
+        name: pkg.packageName,
+      })),
       sortCriteria,
     );
-  }, [packageNames, sortCriteria]);
+  }, [packages, sortCriteria]);
 
   // Handle browser back/forward navigation
   useEffect(() => {
@@ -79,6 +79,7 @@ export function usePackageColumn(
       const newPackages = urlPackages.map((pkg) => ({
         id: crypto.randomUUID(),
         packageName: pkg.name,
+        ecosystem: pkg.ecosystem,
       }));
       setPackages(newPackages);
     };
@@ -107,11 +108,15 @@ export function usePackageColumn(
       return;
     }
 
+    const detected = detectPackageEcosystem(trimmedName);
+    const ecosystem: "npm" | "pypi" = detected === "unknown" ? "npm" : detected;
+
     setPackages((prev) => [
       ...prev,
       {
         id: crypto.randomUUID(),
         packageName: trimmedName,
+        ecosystem,
       },
     ]);
   };
