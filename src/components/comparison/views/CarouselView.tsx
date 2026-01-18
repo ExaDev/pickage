@@ -34,6 +34,11 @@ const GRID_ROWS = {
     quality: 1, // Quality score
     popularity: 1, // Popularity score
     maintenance: 1, // Maintenance score
+    popTitle: 1, // "Popularity Breakdown"
+    commInterest: 1,
+    downloadsCount: 1,
+    downloadsAccel: 1,
+    dependentsScore: 1,
     qualityTitle: 1, // "Quality Breakdown"
     tests: 1,
     health: 1,
@@ -55,18 +60,24 @@ const GRID_ROWS = {
     // npm-specific rows
     downloads: 1,
     dependents: 1,
+    devDependencies: 1,
+    peerDependencies: 1,
     // PyPI-specific rows
     requiresPython: 1,
     uploads: 1,
     lastUpload: 1,
     classifiers: 1,
+    platform: 1,
     // Shared rows (both ecosystems) - these align!
     license: 1,
     dependencies: 1,
     author: 1,
+    maintainer: 1, // PyPI only, aligns with npm maintainers position
     // npm-specific rows
     keywords: 1,
     maintainers: 1,
+    // PyPI project URLs (multiple rows)
+    projectUrls: 1,
   },
   // GitHub section rows
   github: {
