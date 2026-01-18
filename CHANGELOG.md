@@ -1,3 +1,13 @@
+# [1.8.0](https://github.com/ExaDev/pickage/compare/v1.7.0...v1.8.0) (2026-01-18)
+
+### Bug Fixes
+
+- **e2e:** Update import dependencies tests to handle strict mode ([a738a0f](https://github.com/ExaDev/pickage/commit/a738a0f036d11a1277c97b5c2334db2429b3c3ff))
+
+### Features
+
+- Add multi-ecosystem package search for npm and PyPI ([5e5fdbd](https://github.com/ExaDev/pickage/commit/5e5fdbd8721c0f9c039834d2170d644ad9bec7de))
+
 # [1.7.0](https://github.com/ExaDev/peek-package/compare/v1.6.2...v1.7.0) (2026-01-18)
 
 ### Features
