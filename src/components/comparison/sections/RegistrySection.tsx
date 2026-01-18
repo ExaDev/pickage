@@ -1,4 +1,4 @@
-import { Box, Group, Text, Badge, Tooltip } from "@mantine/core";
+import { Anchor, Box, Group, Text, Badge, Tooltip } from "@mantine/core";
 import { IconRefresh } from "@tabler/icons-react";
 import type { SectionProps } from "./types";
 
@@ -145,7 +145,31 @@ export function RegistrySection({
         />
       </Box>
 
-      {/* Row 4: PyPI-specific: Requires Python */}
+      {/* Row 4: npm-specific: Dev Dependencies */}
+      <Box py="xs" style={contentPadding}>
+        <MetricRow
+          label="Dev Dependencies"
+          value={
+            hasNpm && packageStats?.npm?.devDependencies
+              ? packageStats.npm.devDependencies.length
+              : null
+          }
+        />
+      </Box>
+
+      {/* Row 5: npm-specific: Peer Dependencies */}
+      <Box py="xs" style={contentPadding}>
+        <MetricRow
+          label="Peer Dependencies"
+          value={
+            hasNpm && packageStats?.npm?.peerDependencies
+              ? Object.keys(packageStats.npm.peerDependencies).length
+              : null
+          }
+        />
+      </Box>
+
+      {/* Row 6: PyPI-specific: Requires Python */}
       <Box py="xs" style={contentPadding}>
         <MetricRow
           label="Requires Python"
@@ -204,7 +228,15 @@ export function RegistrySection({
         ) : null}
       </Box>
 
-      {/* Row 8: Shared: License */}
+      {/* Row 8: PyPI-specific: Platform */}
+      <Box py="xs" style={contentPadding}>
+        <MetricRow
+          label="Platform"
+          value={hasPyPI ? packageStats?.pypi?.platform : null}
+        />
+      </Box>
+
+      {/* Row 9: Shared: License */}
       <Box py="xs" style={contentPadding}>
         <MetricRow
           label="License"
@@ -231,32 +263,61 @@ export function RegistrySection({
         <MetricRow label="Author" value={packageStats?.author?.name} />
       </Box>
 
-      {/* Row 11: npm-specific: Keywords */}
+      {/* Row 11: PyPI-specific: Maintainer */}
       <Box py="xs" style={contentPadding}>
-        {hasNpm &&
-        packageStats?.npm?.keywords &&
-        packageStats.npm.keywords.length > 0 ? (
+        <MetricRow
+          label="Maintainer"
+          value={hasPyPI ? packageStats?.pypi?.maintainer : null}
+        />
+      </Box>
+
+      {/* Row 12: Shared: Keywords */}
+      <Box py="xs" style={contentPadding}>
+        {/* eslint-disable @typescript-eslint/no-unnecessary-condition */}
+        {((hasNpm &&
+          packageStats?.npm?.keywords &&
+          packageStats.npm.keywords.length > 0) ||
+          (hasPyPI &&
+            packageStats?.pypi?.keywords &&
+            packageStats.pypi.keywords.length > 0)) && (
           <>
             <Text size="xs" c="dimmed" mb={4}>
               Keywords
             </Text>
             <Group gap={4}>
-              {packageStats.npm.keywords.slice(0, 5).map((kw) => (
-                <Badge key={kw} size="xs" variant="outline">
-                  {kw}
-                </Badge>
-              ))}
-              {packageStats.npm.keywords.length > 5 && (
-                <Badge size="xs" variant="light">
-                  +{String(packageStats.npm.keywords.length - 5)} more
-                </Badge>
-              )}
+              {hasNpm &&
+                packageStats?.npm?.keywords?.slice(0, 5).map((kw) => (
+                  <Badge key={kw} size="xs" variant="outline">
+                    {kw}
+                  </Badge>
+                ))}
+              {hasPyPI &&
+                packageStats?.pypi?.keywords?.slice(0, 5).map((kw) => (
+                  <Badge key={kw} size="xs" variant="outline">
+                    {kw}
+                  </Badge>
+                ))}
+              {hasNpm &&
+                packageStats?.npm?.keywords &&
+                packageStats.npm.keywords.length > 5 && (
+                  <Badge size="xs" variant="light">
+                    +{String(packageStats.npm.keywords.length - 5)} more
+                  </Badge>
+                )}
+              {hasPyPI &&
+                packageStats?.pypi?.keywords &&
+                packageStats.pypi.keywords.length > 5 && (
+                  <Badge size="xs" variant="light">
+                    +{String(packageStats.pypi.keywords.length - 5)} more
+                  </Badge>
+                )}
             </Group>
           </>
-        ) : null}
+        )}
+        {/* eslint-enable @typescript-eslint/no-unnecessary-condition */}
       </Box>
 
-      {/* Row 12: npm-specific: Maintainers */}
+      {/* Row 13: npm-specific: Maintainers */}
       <Box py="xs" style={contentPadding}>
         {hasNpm &&
         packageStats?.maintainers &&
@@ -274,6 +335,45 @@ export function RegistrySection({
               {packageStats.maintainers.length > 3 && (
                 <Badge size="xs" variant="light">
                   +{String(packageStats.maintainers.length - 3)} more
+                </Badge>
+              )}
+            </Group>
+          </>
+        ) : null}
+      </Box>
+
+      {/* Row 14: PyPI-specific: Project URLs */}
+      <Box py="xs" style={contentPadding}>
+        {hasPyPI &&
+        packageStats?.pypi?.projectUrls &&
+        Object.keys(packageStats.pypi.projectUrls).length > 0 ? (
+          <>
+            <Text size="xs" c="dimmed" mb={4}>
+              Project Links
+            </Text>
+            <Group gap={4}>
+              {Object.entries(packageStats.pypi.projectUrls)
+                .slice(0, 4)
+                .map(([name, url]) => (
+                  <Anchor
+                    key={name}
+                    href={url}
+                    target="_blank"
+                    size="xs"
+                    style={{ textDecoration: "none" }}
+                  >
+                    <Badge size="xs" variant="light">
+                      {name}
+                    </Badge>
+                  </Anchor>
+                ))}
+              {Object.keys(packageStats.pypi.projectUrls).length > 4 && (
+                <Badge size="xs" variant="outline">
+                  +
+                  {String(
+                    Object.keys(packageStats.pypi.projectUrls).length - 4,
+                  )}{" "}
+                  more
                 </Badge>
               )}
             </Group>

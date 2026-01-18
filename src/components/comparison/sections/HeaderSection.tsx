@@ -152,6 +152,13 @@ export function HeaderSection({
                 </Group>
               </Anchor>
             )}
+            {links.bugs && (
+              <Anchor href={links.bugs} target="_blank" size="xs">
+                <Group gap={2}>
+                  Issues <IconExternalLink size={10} />
+                </Group>
+              </Anchor>
+            )}
           </Group>
         ) : (
           <Text size="xs" c="dimmed">
