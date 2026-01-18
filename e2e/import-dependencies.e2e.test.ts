@@ -401,4 +401,80 @@ require (
       .catch(() => false);
     expect(isVisible).toBe(false);
   });
+
+  test("should have drag-and-drop zone visible in modal", async ({ page }) => {
+    await openImportModal(page);
+
+    // Check for drag-and-drop zone
+    const dragDropZone = page.getByText("Drag and drop a file here");
+    await expect(dragDropZone).toBeVisible({ timeout: 5000 });
+  });
+
+  test("should have file input button for upload", async ({ page }) => {
+    await openImportModal(page);
+
+    // Check for file upload button
+    const fileButton = page.getByRole("button", { name: /choose file|upload/i });
+    await expect(fileButton.first()).toBeVisible({ timeout: 5000 });
+  });
+
+  test("should accept multiple dependency file formats", async ({ page }) => {
+    await openImportModal(page);
+
+    // Look for supported formats text
+    const supportedFormats = page.getByText(
+      /supported formats|package\.json|requirements\.txt/i,
+    );
+    await expect(supportedFormats).toBeVisible({ timeout: 5000 });
+  });
+
+  test("should show parse content button", async ({ page }) => {
+    await openImportModal(page);
+
+    // Button should exist but be disabled initially
+    const parseButton = page.getByRole("button", { name: "Parse Content" });
+    await expect(parseButton).toBeVisible({ timeout: 5000 });
+  });
+
+  test("should display modal title correctly", async ({ page }) => {
+    await openImportModal(page);
+
+    // Check modal title
+    const title = page.getByRole("heading", { name: "Import Dependencies" });
+    await expect(title).toBeVisible({ timeout: 5000 });
+  });
+
+  test("should allow closing modal with close button", async ({ page }) => {
+    await openImportModal(page);
+
+    // Find and click close button (X icon or Close button)
+    const closeButton = page.getByRole("button", { name: /close/i }).last();
+    await closeButton.click();
+
+    // Modal should close
+    const title = page.getByRole("heading", { name: "Import Dependencies" });
+    await expect(title).not.toBeVisible({ timeout: 5000 });
+  });
+
+  test("should display help text about supported formats", async ({ page }) => {
+    await openImportModal(page);
+
+    // Check for format hints
+    const helpText = page.getByText(/package\.json/i);
+    await expect(helpText).toBeVisible({ timeout: 5000 });
+  });
+
+  test("should show textarea for pasting content", async ({ page }) => {
+    await openImportModal(page);
+
+    // Find textarea
+    const textarea = page.getByPlaceholder(
+      /paste your package.json|requirements.txt|paste/i,
+    );
+    await expect(textarea).toBeVisible({ timeout: 5000 });
+
+    // Should be able to type in it
+    await textarea.fill("test");
+    await expect(textarea).toHaveValue("test");
+  });
 });
