@@ -77,10 +77,12 @@ test.describe("Import Dependencies Journey", () => {
     await expect(page.getByText("Found 3 packages")).toBeVisible({
       timeout: 5000,
     });
-    await expect(page.getByText("package.json")).toBeVisible();
+    await expect(page.getByText("package.json", { exact: true })).toBeVisible();
 
     // Verify ecosystem badges appear
-    await expect(page.getByText("npm")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("npm", { exact: true }).nth(1)).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   test("should detect requirements.txt format and parse python packages", async ({ page }) => {
@@ -102,10 +104,14 @@ pandas
     await expect(page.getByText(/Found \d+ packages?/)).toBeVisible({
       timeout: 5000,
     });
-    await expect(page.getByText("requirements.txt")).toBeVisible();
+    await expect(
+      page.getByText("requirements.txt", { exact: true }),
+    ).toBeVisible();
 
     // Verify some Python packages are detected with pypi ecosystem
-    await expect(page.getByText("pypi")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("pypi", { exact: true })).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   test("should handle mixed format with ecosystem detection", async ({ page }) => {
@@ -126,8 +132,12 @@ jest`;
     });
 
     // Should detect both npm and pypi packages
-    await expect(page.getByText("npm")).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText("pypi")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("npm", { exact: true }).nth(1)).toBeVisible({
+      timeout: 5000,
+    });
+    await expect(page.getByText("pypi", { exact: true })).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   test("should import packages into comparison", async ({ page }) => {
@@ -307,7 +317,7 @@ express`;
     await expect(page.getByText(/Found \d+ packages?/)).toBeVisible({
       timeout: 5000,
     });
-    await expect(page.getByText("yarn.lock")).toBeVisible();
+    await expect(page.getByText("yarn.lock", { exact: true })).toBeVisible();
   });
 
   test("should support go.mod format detection", async ({ page }) => {
@@ -328,7 +338,7 @@ require (
     await expect(page.getByText(/Found \d+ packages?/)).toBeVisible({
       timeout: 5000,
     });
-    await expect(page.getByText("go.mod")).toBeVisible();
+    await expect(page.getByText("go.mod", { exact: true })).toBeVisible();
   });
 
   test("should handle large dependency lists", async ({ page }) => {
