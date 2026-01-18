@@ -282,6 +282,13 @@ export function PackageMetricsPanel({
       {/* Links Row */}
       {hasLinks && (
         <Group gap="xs">
+          {packageStats.links?.pypi && (
+            <Anchor href={packageStats.links.pypi} target="_blank" size="xs">
+              <Group gap={2}>
+                PyPI <IconExternalLink size={10} />
+              </Group>
+            </Anchor>
+          )}
           {packageStats.links?.npm && (
             <Anchor href={packageStats.links.npm} target="_blank" size="xs">
               <Group gap={2}>
@@ -321,163 +328,236 @@ export function PackageMetricsPanel({
         </Group>
       )}
 
-      {/* ===== npms.io Derived Scores Section ===== */}
-      <Box>
-        <Group gap="xs" mb="xs">
-          <IconCalculator size={18} color="var(--mantine-color-violet-6)" />
-          <Text size="sm" fw={600}>
-            npms.io Scores
-          </Text>
-          <Tooltip
-            label="Normalized 0-100 scores calculated by npms.io. These enable comparison across packages."
-            multiline
-            w={280}
-          >
-            <IconInfoCircle
-              size={14}
-              color="var(--mantine-color-dimmed)"
-              style={{ cursor: "help" }}
-            />
-          </Tooltip>
-        </Group>
-
-        <Stack gap="md">
-          {/* Overall Score */}
-          <Group justify="space-between">
-            <Group gap={4}>
-              <Text size="xs" c="dimmed">
-                Overall Score
+      {/* ===== PyPI Registry Data Section ===== */}
+      {packageStats.pypi && (
+        <>
+          <Box>
+            <Group gap="xs" mb="xs">
+              <Text size="sm" fw={600}>
+                PyPI Registry
               </Text>
-              <Tooltip
-                label={CALCULATION_TOOLTIPS.finalScore}
-                multiline
-                w={250}
+            </Group>
+            <Stack gap="xs">
+              <MetricRow
+                label="Requires Python"
+                value={packageStats.pypi.requiresPython ?? "Any"}
+              />
+              <MetricRow
+                label="License"
+                value={packageStats.pypi.license ?? "Not specified"}
+              />
+              <MetricRow
+                label="Dependencies"
+                value={String(packageStats.pypi.dependencies.length)}
+              />
+              <MetricRow
+                label="Total Uploads"
+                value={String(packageStats.pypi.uploads)}
+              />
+              {packageStats.pypi.upload_time && (
+                <Group justify="space-between">
+                  <Text size="xs" c="dimmed">
+                    Last Upload
+                  </Text>
+                  <Tooltip label={formatDate(packageStats.pypi.upload_time)}>
+                    <Text size="sm">
+                      {formatRelativeDate(packageStats.pypi.upload_time)}
+                    </Text>
+                  </Tooltip>
+                </Group>
+              )}
+
+              {/* Author */}
+              {packageStats.author && (
+                <MetricRow label="Author" value={packageStats.author.name} />
+              )}
+
+              {/* Classifiers */}
+              {packageStats.pypi.classifiers &&
+                packageStats.pypi.classifiers.length > 0 && (
+                  <Box>
+                    <Text size="xs" c="dimmed" mb={4}>
+                      Classifiers ({packageStats.pypi.classifiers.length})
+                    </Text>
+                    <Group gap={4}>
+                      {packageStats.pypi.classifiers.slice(0, 5).map((c) => (
+                        <Badge key={c} size="xs" variant="outline">
+                          {c.replace(/^[^:]+::\s*/, "")}
+                        </Badge>
+                      ))}
+                      {packageStats.pypi.classifiers.length > 5 && (
+                        <Badge size="xs" variant="light">
+                          +{String(packageStats.pypi.classifiers.length - 5)} more
+                        </Badge>
+                      )}
+                    </Group>
+                  </Box>
+                )}
+            </Stack>
+          </Box>
+          <Divider />
+        </>
+      )}
+
+      {/* ===== npms.io Derived Scores Section (npm only) ===== */}
+      {packageStats.evaluation && (
+        <Box>
+          <Group gap="xs" mb="xs">
+            <IconCalculator size={18} color="var(--mantine-color-violet-6)" />
+            <Text size="sm" fw={600}>
+              npms.io Scores
+            </Text>
+            <Tooltip
+              label="Normalized 0-100 scores calculated by npms.io. These enable comparison across packages."
+              multiline
+              w={280}
+            >
+              <IconInfoCircle
+                size={14}
+                color="var(--mantine-color-dimmed)"
+                style={{ cursor: "help" }}
+              />
+            </Tooltip>
+          </Group>
+
+          <Stack gap="md">
+            {/* Overall Score */}
+            <Group justify="space-between">
+              <Group gap={4}>
+                <Text size="xs" c="dimmed">
+                  Overall Score
+                </Text>
+                <Tooltip
+                  label={CALCULATION_TOOLTIPS.finalScore}
+                  multiline
+                  w={250}
+                >
+                  <IconInfoCircle
+                    size={12}
+                    color="var(--mantine-color-dimmed)"
+                    style={{ cursor: "help" }}
+                  />
+                </Tooltip>
+              </Group>
+              <Badge
+                color={getScoreColor(packageStats.finalScore)}
+                variant="filled"
+                size="lg"
               >
-                <IconInfoCircle
-                  size={12}
-                  color="var(--mantine-color-dimmed)"
+                {packageStats.finalScore ?? "N/A"}/100
+              </Badge>
+            </Group>
+
+            {/* Main Score Badges */}
+            <Group gap="xs" wrap="wrap">
+              <Tooltip label={CALCULATION_TOOLTIPS.quality} multiline w={250}>
+                <Badge
+                  size="sm"
+                  color={getScoreColor(packageStats.quality)}
                   style={{ cursor: "help" }}
-                />
+                >
+                  Quality: {packageStats.quality ?? "N/A"}
+                </Badge>
+              </Tooltip>
+
+              <Tooltip label={CALCULATION_TOOLTIPS.popularity} multiline w={250}>
+                <Badge
+                  size="sm"
+                  color={getScoreColor(packageStats.popularity)}
+                  style={{ cursor: "help" }}
+                >
+                  Popularity: {packageStats.popularity ?? "N/A"}
+                </Badge>
+              </Tooltip>
+
+              <Tooltip label={CALCULATION_TOOLTIPS.maintenance} multiline w={250}>
+                <Badge
+                  size="sm"
+                  color={getScoreColor(packageStats.maintenance)}
+                  style={{ cursor: "help" }}
+                >
+                  Maintenance: {packageStats.maintenance ?? "N/A"}
+                </Badge>
               </Tooltip>
             </Group>
-            <Badge
-              color={getScoreColor(packageStats.finalScore)}
-              variant="filled"
-              size="lg"
-            >
-              {packageStats.finalScore ?? "N/A"}/100
-            </Badge>
-          </Group>
 
-          {/* Main Score Badges */}
-          <Group gap="xs" wrap="wrap">
-            <Tooltip label={CALCULATION_TOOLTIPS.quality} multiline w={250}>
-              <Badge
-                size="sm"
-                color={getScoreColor(packageStats.quality)}
-                style={{ cursor: "help" }}
-              >
-                Quality: {packageStats.quality ?? "N/A"}
-              </Badge>
-            </Tooltip>
+            {/* Detailed Breakdowns - all derived 0-100 scores */}
+            {hasEvaluation && (
+              <Stack gap="md">
+                {/* Quality Breakdown */}
+                {packageStats.evaluation?.quality && (
+                  <Box>
+                    <Text size="xs" fw={500} mb={4}>
+                      Quality Breakdown
+                    </Text>
+                    <Stack gap={2}>
+                      <MetricRow
+                        label="Tests"
+                        value={`${String(packageStats.evaluation.quality.tests)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.tests}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Health"
+                        value={`${String(packageStats.evaluation.quality.health)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.health}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Carefulness"
+                        value={`${String(packageStats.evaluation.quality.carefulness)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.carefulness}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Branding"
+                        value={`${String(packageStats.evaluation.quality.branding)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.branding}
+                        isBadge
+                      />
+                    </Stack>
+                  </Box>
+                )}
 
-            <Tooltip label={CALCULATION_TOOLTIPS.popularity} multiline w={250}>
-              <Badge
-                size="sm"
-                color={getScoreColor(packageStats.popularity)}
-                style={{ cursor: "help" }}
-              >
-                Popularity: {packageStats.popularity ?? "N/A"}
-              </Badge>
-            </Tooltip>
-
-            <Tooltip label={CALCULATION_TOOLTIPS.maintenance} multiline w={250}>
-              <Badge
-                size="sm"
-                color={getScoreColor(packageStats.maintenance)}
-                style={{ cursor: "help" }}
-              >
-                Maintenance: {packageStats.maintenance ?? "N/A"}
-              </Badge>
-            </Tooltip>
-          </Group>
-
-          {/* Detailed Breakdowns - all derived 0-100 scores */}
-          {hasEvaluation && (
-            <Stack gap="md">
-              {/* Quality Breakdown */}
-              {packageStats.evaluation?.quality && (
-                <Box>
-                  <Text size="xs" fw={500} mb={4}>
-                    Quality Breakdown
-                  </Text>
-                  <Stack gap={2}>
-                    <MetricRow
-                      label="Tests"
-                      value={`${String(packageStats.evaluation.quality.tests)}%`}
-                      tooltip={CALCULATION_TOOLTIPS.tests}
-                      isBadge
-                    />
-                    <MetricRow
-                      label="Health"
-                      value={`${String(packageStats.evaluation.quality.health)}%`}
-                      tooltip={CALCULATION_TOOLTIPS.health}
-                      isBadge
-                    />
-                    <MetricRow
-                      label="Carefulness"
-                      value={`${String(packageStats.evaluation.quality.carefulness)}%`}
-                      tooltip={CALCULATION_TOOLTIPS.carefulness}
-                      isBadge
-                    />
-                    <MetricRow
-                      label="Branding"
-                      value={`${String(packageStats.evaluation.quality.branding)}%`}
-                      tooltip={CALCULATION_TOOLTIPS.branding}
-                      isBadge
-                    />
-                  </Stack>
-                </Box>
-              )}
-
-              {/* Maintenance Breakdown */}
-              {packageStats.evaluation?.maintenance && (
-                <Box>
-                  <Text size="xs" fw={500} mb={4}>
-                    Maintenance Breakdown
-                  </Text>
-                  <Stack gap={2}>
-                    <MetricRow
-                      label="Release Frequency"
-                      value={`${String(packageStats.evaluation.maintenance.releasesFrequency)}%`}
-                      tooltip={CALCULATION_TOOLTIPS.releasesFrequency}
-                      isBadge
-                    />
-                    <MetricRow
-                      label="Commit Frequency"
-                      value={`${String(packageStats.evaluation.maintenance.commitsFrequency)}%`}
-                      tooltip={CALCULATION_TOOLTIPS.commitsFrequency}
-                      isBadge
-                    />
-                    <MetricRow
-                      label="Open Issues"
-                      value={`${String(packageStats.evaluation.maintenance.openIssues)}%`}
-                      tooltip={CALCULATION_TOOLTIPS.openIssues}
-                      isBadge
-                    />
-                    <MetricRow
-                      label="Issues Distribution"
-                      value={`${String(packageStats.evaluation.maintenance.issuesDistribution)}%`}
-                      tooltip={CALCULATION_TOOLTIPS.issuesDistribution}
-                      isBadge
-                    />
-                  </Stack>
-                </Box>
-              )}
-            </Stack>
-          )}
-        </Stack>
-      </Box>
+                {/* Maintenance Breakdown */}
+                {packageStats.evaluation?.maintenance && (
+                  <Box>
+                    <Text size="xs" fw={500} mb={4}>
+                      Maintenance Breakdown
+                    </Text>
+                    <Stack gap={2}>
+                      <MetricRow
+                        label="Release Frequency"
+                        value={`${String(packageStats.evaluation.maintenance.releasesFrequency)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.releasesFrequency}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Commit Frequency"
+                        value={`${String(packageStats.evaluation.maintenance.commitsFrequency)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.commitsFrequency}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Open Issues"
+                        value={`${String(packageStats.evaluation.maintenance.openIssues)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.openIssues}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Issues Distribution"
+                        value={`${String(packageStats.evaluation.maintenance.issuesDistribution)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.issuesDistribution}
+                        isBadge
+                      />
+                    </Stack>
+                  </Box>
+                )}
+              </Stack>
+            )}
+          </Stack>
+        </Box>
+      )}
 
       {/* ===== Comparison Analysis Section (Our Calculations) ===== */}
       {(isQualityWinner ||
@@ -548,10 +628,11 @@ export function PackageMetricsPanel({
         </>
       )}
 
-      <Divider />
-
       {/* ===== npm Registry Data Section ===== */}
-      <Box>
+      {packageStats.npm && (
+        <>
+          <Divider />
+          <Box>
         <Group justify="space-between" mb="xs">
           <Group gap="xs">
             <IconBrandNpm size={18} color="var(--mantine-color-red-6)" />
@@ -694,8 +775,8 @@ export function PackageMetricsPanel({
           )}
         </Stack>
       </Box>
-
-      <Divider />
+    </>
+  )}
 
       {/* ===== GitHub Data Section ===== */}
       <Box>
