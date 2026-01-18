@@ -77,12 +77,15 @@ export function StickyInputBar({
   const { data: searchResults, isLoading } =
     usePackageSearch(debouncedSearchQuery);
 
-  // Format search results for Autocomplete component
-  const suggestions = (searchResults || []).slice(0, 8).map((result) => ({
-    value: result.package.name,
-    label: result.package.name,
-    description: truncate(result.package.description, 60),
-  }));
+  // Format search results for Autocomplete component with ecosystem info
+  const suggestions = (searchResults || [])
+    .slice(0, 8)
+    .map((result) => ({
+      value: result.package.name,
+      label: result.package.name,
+      description: truncate(result.package.description, 60),
+      ecosystem: result.package.ecosystem,
+    }));
 
   useEffect(() => {
     const handler = () => {
@@ -246,13 +249,25 @@ export function StickyInputBar({
                   renderOption={({ option }) => {
                     const description = (option as { description?: string })
                       .description;
+                    const ecosystem = (option as { ecosystem?: string })
+                      .ecosystem;
                     return (
-                      <div>
-                        <div style={{ fontWeight: 500 }}>{option.value}</div>
-                        {typeof description === "string" && (
-                          <div style={{ fontSize: "0.85em", opacity: 0.7 }}>
-                            {description}
-                          </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 500 }}>{option.value}</div>
+                          {typeof description === "string" && (
+                            <div style={{ fontSize: "0.85em", opacity: 0.7 }}>
+                              {description}
+                            </div>
+                          )}
+                        </div>
+                        {ecosystem && (
+                          <Badge
+                            size="sm"
+                            color={ecosystem === "npm" ? "blue" : "yellow"}
+                          >
+                            {ecosystem}
+                          </Badge>
                         )}
                       </div>
                     );
@@ -315,13 +330,25 @@ export function StickyInputBar({
                   renderOption={({ option }) => {
                     const description = (option as { description?: string })
                       .description;
+                    const ecosystem = (option as { ecosystem?: string })
+                      .ecosystem;
                     return (
-                      <div>
-                        <div style={{ fontWeight: 500 }}>{option.value}</div>
-                        {typeof description === "string" && (
-                          <div style={{ fontSize: "0.85em", opacity: 0.7 }}>
-                            {description}
-                          </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 500 }}>{option.value}</div>
+                          {typeof description === "string" && (
+                            <div style={{ fontSize: "0.85em", opacity: 0.7 }}>
+                              {description}
+                            </div>
+                          )}
+                        </div>
+                        {ecosystem && (
+                          <Badge
+                            size="sm"
+                            color={ecosystem === "npm" ? "blue" : "yellow"}
+                          >
+                            {ecosystem}
+                          </Badge>
                         )}
                       </div>
                     );

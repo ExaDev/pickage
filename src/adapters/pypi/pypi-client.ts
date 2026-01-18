@@ -1,7 +1,13 @@
 /**
  * PyPI API client for fetching Python package information
- * Uses the JSON API at https://pypi.org/pypi/
+ * Uses the JSON API at https://pypi.org/pypi/ and warehouse API for search
  */
+
+export interface PyPiSearchResult {
+  name: string;
+  version: string;
+  summary: string;
+}
 
 export interface PyPiPackageData {
   info: {
@@ -23,6 +29,7 @@ export interface PyPiPackageData {
 
 export class PyPiClient {
   private baseUrl = "https://pypi.org/pypi";
+  private warehouseUrl = "https://warehouse.pypa.io/api";
   private timeout = 10000; // 10 seconds
 
   async fetchPackage(packageName: string): Promise<PyPiPackageData> {
@@ -47,6 +54,32 @@ export class PyPiClient {
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Failed to fetch package from PyPI: ${error.message}`);
+      }
+      throw error;
+    }
+  }
+
+  async searchPackages(query: string): Promise<PyPiSearchResult[]> {
+    const url = `${this.warehouseUrl}/search.json?q=${encodeURIComponent(query)}`;
+
+    try {
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(this.timeout),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `PyPI search error: ${String(response.status)} ${response.statusText}`,
+        );
+      }
+
+      const data = (await response.json()) as { projects: PyPiSearchResult[] };
+      return data.projects || [];
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(
+          `Failed to search PyPI packages: ${error.message}`,
+        );
       }
       throw error;
     }
