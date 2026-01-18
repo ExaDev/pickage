@@ -263,7 +263,7 @@ export function CarouselView({
                   }}
                 >
                   <HeaderSection
-                    packageName={pkg.packageName}
+                    packageName={packageStats?.name ?? pkg.packageName}
                     packageStats={packageStats}
                     isLoading={isLoading}
                     showRemove={canRemove}

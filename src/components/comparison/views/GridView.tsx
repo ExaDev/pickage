@@ -30,7 +30,7 @@ export function GridView({
           return (
             <PackageColumn
               key={pkg.id}
-              packageName={pkg.packageName}
+              packageName={packageStats?.name ?? pkg.packageName}
               packageStats={packageStats}
               isLoading={isLoading}
               showRemove={canRemove}
