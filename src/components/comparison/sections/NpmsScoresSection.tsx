@@ -15,6 +15,21 @@ function getScoreColor(score: number | undefined): "green" | "yellow" | "red" {
   return "red";
 }
 
+/**
+ * Format metrics with K/M suffix (handles negative values)
+ */
+function formatMetric(num: number | undefined): string {
+  if (num === undefined) return "N/A";
+  const absNum = Math.abs(num);
+  const formatted =
+    absNum >= 1_000_000
+      ? `${(absNum / 1_000_000).toFixed(1)}M`
+      : absNum >= 1_000
+        ? `${(absNum / 1_000).toFixed(1)}K`
+        : absNum.toLocaleString();
+  return num < 0 ? `-${formatted}` : formatted;
+}
+
 const CALCULATION_TOOLTIPS = {
   finalScore:
     "Weighted combination of Quality (30%), Popularity (35%), and Maintenance (35%) scores",
@@ -24,6 +39,10 @@ const CALCULATION_TOOLTIPS = {
     "Based on: community interest (stars + forks), download volume, download growth rate, packages depending on this",
   maintenance:
     "Based on: release frequency, commit frequency, issue response time, issue resolution distribution",
+  communityInterest: "Score based on GitHub stars and forks",
+  downloadsCount: "Score based on weekly download volume",
+  downloadsAcceleration: "Score based on download growth rate over time",
+  dependentsCount: "Score based on number of packages that depend on this",
   tests: "Detects presence of test frameworks and test files in the repository",
   health:
     "Checks for .npmignore, lockfiles, shrinkwrap, and other health indicators",
@@ -95,6 +114,7 @@ export function NpmsScoresSection({
   }
 
   const quality = packageStats?.evaluation?.quality;
+  const popularity = packageStats?.evaluation?.popularity;
   const maintenance = packageStats?.evaluation?.maintenance;
 
   return (
@@ -206,7 +226,36 @@ export function NpmsScoresSection({
         </Badge>
       </Group>
 
-      {/* Row 4: Quality Breakdown title */}
+      {/* Row 6: Popularity Breakdown title */}
+      <Box px={px} py={py}>
+        <Text size="xs" fw={500}>
+          Popularity Breakdown
+        </Text>
+      </Box>
+
+      {/* Rows 7-10: Popularity metrics */}
+      <MetricRow
+        label="Community Interest"
+        value={formatMetric(popularity?.communityInterest)}
+        tooltip={CALCULATION_TOOLTIPS.communityInterest}
+      />
+      <MetricRow
+        label="Downloads Count"
+        value={formatMetric(popularity?.downloadsCount)}
+        tooltip={CALCULATION_TOOLTIPS.downloadsCount}
+      />
+      <MetricRow
+        label="Downloads Acceleration"
+        value={formatMetric(popularity?.downloadsAcceleration)}
+        tooltip={CALCULATION_TOOLTIPS.downloadsAcceleration}
+      />
+      <MetricRow
+        label="Dependents Count"
+        value={formatMetric(popularity?.dependentsCount)}
+        tooltip={CALCULATION_TOOLTIPS.dependentsCount}
+      />
+
+      {/* Row 11: Quality Breakdown title */}
       <Box px={px} py={py}>
         <Text size="xs" fw={500}>
           Quality Breakdown
