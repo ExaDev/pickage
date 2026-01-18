@@ -43,4 +43,13 @@ void enableMocking().then(() => {
       </PersistQueryClientProvider>
     </React.StrictMode>,
   );
+
+  // Prefetch PyPI packages in the background after app renders
+  // This makes PyPI searches instant after initial page load
+  // We fetch both full (35MB) and popular (790KB) datasets
+  void import("./hooks/usePyPiPackages").then(({ prefetchPyPiPackages }) => {
+    void prefetchPyPiPackages().catch((error: unknown) => {
+      console.warn("Failed to prefetch PyPI packages:", error);
+    });
+  });
 });

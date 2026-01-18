@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { NpmsClient } from "@/adapters/npm/npms-client";
 import { PyPiClient } from "@/adapters/pypi/pypi-client";
 import { cacheKeys } from "@/utils/cache";
+import { usePyPiPackages } from "./usePyPiPackages";
 
 const npmsClient = new NpmsClient();
 const pypiClient = new PyPiClient();
@@ -38,20 +39,28 @@ export function usePackageSearch(
 ) {
   const { enabled = true } = options;
 
+  // Get PyPI packages from React Query cache (prefers full, falls back to popular)
+  const { data: pypiPackages } = usePyPiPackages();
+
   return useQuery({
     queryKey: cacheKeys.searchSuggestions(query),
     queryFn: async () => {
       try {
-        // Search both npm and PyPI in parallel
-        const [npmResults, pypiResults] = await Promise.allSettled([
+        // Search npm and PyPI in parallel
+        const [npmResults] = await Promise.allSettled([
           npmsClient.fetchSuggestions(query),
-          pypiClient.searchPackages(query),
         ]);
+
+        // Search PyPI packages client-side (synchronous)
+        let pypiResults: ReturnType<typeof pypiClient.searchPackages> = [];
+        if (pypiPackages) {
+          pypiResults = pypiClient.searchPackages(pypiPackages, query);
+        }
 
         const results: SearchResult[] = [];
 
         // Add npm results
-        if (npmResults.status === "fulfilled" && npmResults.value) {
+        if (npmResults.status === "fulfilled") {
           results.push(
             ...npmResults.value.map((result) => ({
               package: {
@@ -63,13 +72,13 @@ export function usePackageSearch(
           );
         }
 
-        // Add PyPI results
-        if (pypiResults.status === "fulfilled" && pypiResults.value) {
+        // Add PyPI results (no longer a Promise.allSettled result)
+        if (pypiResults.length > 0) {
           results.push(
-            ...pypiResults.value.map((pkg) => ({
+            ...pypiResults.map((pkg) => ({
               package: {
                 name: pkg.name,
-                description: pkg.summary,
+                description: pkg.summary ?? null,
                 ecosystem: "pypi" as const,
               },
             })),

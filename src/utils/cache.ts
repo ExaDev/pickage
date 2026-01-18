@@ -71,4 +71,8 @@ export const cacheKeys = {
 
   searchSuggestions: (query: string) =>
     ["search", "suggestions", query] as const,
+
+  pypiPopularPackages: () => ["pypi", "popular-packages"] as const,
+
+  pypiFullPackages: () => ["pypi", "full-packages"] as const,
 };
