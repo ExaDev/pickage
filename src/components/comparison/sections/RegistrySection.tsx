@@ -39,24 +39,22 @@ interface MetricRowProps {
 function MetricRow({ label, value, tooltip }: MetricRowProps) {
   const hasValue = value !== null && value !== undefined;
 
+  if (!hasValue) {
+    return null;
+  }
+
   return (
     <Group justify="space-between" wrap="nowrap" mb={0}>
       <Text size="xs" c="dimmed">
         {label}
       </Text>
-      {hasValue ? (
-        <Tooltip
-          label={tooltip || (typeof value === "string" ? value : String(value))}
-        >
-          <Text size="sm" fw={500}>
-            {typeof value === "number" ? formatNumber(value) : value}
-          </Text>
-        </Tooltip>
-      ) : (
+      <Tooltip
+        label={tooltip || (typeof value === "string" ? value : String(value))}
+      >
         <Text size="sm" fw={500}>
-          &nbsp;
+          {typeof value === "number" ? formatNumber(value) : value}
         </Text>
-      )}
+      </Tooltip>
     </Group>
   );
 }
@@ -165,11 +163,11 @@ export function RegistrySection({
 
       {/* Row 6: PyPI-specific: Last Upload */}
       <Box py="xs" style={contentPadding}>
-        <Group justify="space-between" mb={0}>
-          <Text size="xs" c="dimmed">
-            Last Upload
-          </Text>
-          {hasPyPI && packageStats?.pypi?.upload_time ? (
+        {hasPyPI && packageStats?.pypi?.upload_time ? (
+          <Group justify="space-between" mb={0}>
+            <Text size="xs" c="dimmed">
+              Last Upload
+            </Text>
             <Tooltip
               label={new Date(packageStats.pypi.upload_time).toLocaleString()}
             >
@@ -177,10 +175,8 @@ export function RegistrySection({
                 {formatRelativeDate(packageStats.pypi.upload_time)}
               </Text>
             </Tooltip>
-          ) : (
-            <Text size="sm">&nbsp;</Text>
-          )}
-        </Group>
+          </Group>
+        ) : null}
       </Box>
 
       {/* Row 7: PyPI-specific: Classifiers */}

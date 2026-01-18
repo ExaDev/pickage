@@ -121,14 +121,15 @@ export class PyPiAdapter implements EcosystemAdapter {
       repository,
       maintenance: maintenanceScore,
       lastPublish: lastPublishDate,
-      author: info.author_email
-        ? {
-            name: info.author || "Unknown",
-            email: info.author_email,
-          }
-        : info.author
-          ? { name: info.author }
-          : null,
+      author:
+        info.author && info.author_email
+          ? {
+              name: info.author,
+              email: info.author_email,
+            }
+          : info.author
+            ? { name: info.author }
+            : undefined,
       links: {
         pypi: `https://pypi.org/project/${info.name || request.packageName}/`,
         homepage,
