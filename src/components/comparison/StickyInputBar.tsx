@@ -24,10 +24,12 @@ import {
   IconSearch,
   IconTable,
   IconTrash,
+  IconUpload,
   IconX,
 } from "@tabler/icons-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePackageSearch } from "@/hooks/usePackageSearch";
+import { ImportDependenciesModal } from "./ImportDependenciesModal";
 import type { ViewMode } from "@/types/views";
 
 const MOBILE_BREAKPOINT = 768;
@@ -52,6 +54,7 @@ export function StickyInputBar({
   const [isScrolled, setIsScrolled] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -140,6 +143,13 @@ export function StickyInputBar({
         setInputValue("");
         setIsSearchExpanded(false);
       }, 150);
+    }
+  };
+
+  const handleImportPackages = (importedPackages: string[]) => {
+    // Add each imported package
+    for (const pkg of importedPackages) {
+      onAddPackage(pkg);
     }
   };
 
@@ -260,6 +270,19 @@ export function StickyInputBar({
                     <IconPlus size={16} />
                   </ActionIcon>
                 </Tooltip>
+                <Tooltip label="Import dependencies">
+                  <ActionIcon
+                    color="brand"
+                    variant="light"
+                    size="sm"
+                    onClick={() => {
+                      setIsImportModalOpen(true);
+                    }}
+                    aria-label="Import dependencies"
+                  >
+                    <IconUpload size={16} />
+                  </ActionIcon>
+                </Tooltip>
                 <Tooltip label="Close search">
                   <ActionIcon
                     color="gray"
@@ -314,6 +337,19 @@ export function StickyInputBar({
                     aria-label="Add package"
                   >
                     <IconPlus size={20} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Import from dependency file">
+                  <ActionIcon
+                    color="brand"
+                    variant="light"
+                    size="lg"
+                    onClick={() => {
+                      setIsImportModalOpen(true);
+                    }}
+                    aria-label="Import dependencies"
+                  >
+                    <IconUpload size={20} />
                   </ActionIcon>
                 </Tooltip>
               </Group>
@@ -395,6 +431,15 @@ export function StickyInputBar({
                   <Menu.Divider />
 
                   <Menu.Item
+                    leftSection={<IconUpload size={16} />}
+                    onClick={() => {
+                      setIsImportModalOpen(true);
+                    }}
+                  >
+                    Import Dependencies
+                  </Menu.Item>
+
+                  <Menu.Item
                     color="red"
                     leftSection={<IconTrash size={16} />}
                     onClick={onClear}
@@ -468,6 +513,14 @@ export function StickyInputBar({
             ))}
         </Group>
       </Box>
+
+      <ImportDependenciesModal
+        isOpen={isImportModalOpen}
+        onClose={() => {
+          setIsImportModalOpen(false);
+        }}
+        onImport={handleImportPackages}
+      />
     </Paper>
   );
 }

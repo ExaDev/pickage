@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@/test/test-utils";
+import { render } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { PackageInput } from "./PackageInput";
 import { NpmsClient } from "@/adapters/npm/npms-client";
+
+// Note: screen is available globally in vitest with @testing-library/react
+const { screen } = require("@testing-library/react");
 
 // Mock NpmsClient
 vi.mock("@/adapters/npm/npms-client", () => ({
@@ -37,24 +41,26 @@ describe("PackageInput", () => {
     ).toBeInTheDocument();
   });
 
-  it("can add a third package", () => {
+  it("can add a third package", async () => {
+    const user = userEvent.setup();
     render(<PackageInput onCompare={() => {}} />);
 
     const addButton = screen.getByRole("button", { name: /\+ add package/i });
-    fireEvent.click(addButton);
+    await user.click(addButton);
 
     const inputs = screen.getAllByPlaceholderText("e.g., react");
     expect(inputs).toHaveLength(3);
   });
 
-  it("can add packages up to maximum of 6", () => {
+  it("can add packages up to maximum of 6", async () => {
+    const user = userEvent.setup();
     render(<PackageInput onCompare={() => {}} />);
 
     const addButton = screen.getByRole("button", { name: /\+ add package/i });
 
     // Add 4 more packages (starting with 2)
     for (let i = 0; i < 4; i++) {
-      fireEvent.click(addButton);
+      await user.click(addButton);
     }
 
     const inputs = screen.getAllByPlaceholderText("e.g., react");
@@ -64,18 +70,19 @@ describe("PackageInput", () => {
     expect(addButton).not.toBeInTheDocument();
   });
 
-  it("can remove packages down to minimum of 2", () => {
+  it("can remove packages down to minimum of 2", async () => {
+    const user = userEvent.setup();
     render(<PackageInput onCompare={() => {}} />);
 
     // First add a third package
     const addButton = screen.getByRole("button", { name: /\+ add package/i });
-    fireEvent.click(addButton);
+    await user.click(addButton);
 
     // Now remove it
     const removeButton = screen.getByRole("button", {
       name: /remove package 3/i,
     });
-    fireEvent.click(removeButton);
+    await user.click(removeButton);
 
     const inputs = screen.getAllByPlaceholderText("e.g., react");
     expect(inputs).toHaveLength(2);
@@ -88,32 +95,35 @@ describe("PackageInput", () => {
     expect(compareButton).toBeDisabled();
   });
 
-  it("enables compare button with 2 valid packages", () => {
+  it("enables compare button with 2 valid packages", async () => {
+    const user = userEvent.setup();
     render(<PackageInput onCompare={() => {}} />);
 
     const inputs = screen.getAllByPlaceholderText("e.g., react");
     const compareButton = screen.getByRole("button", { name: /compare/i });
 
-    fireEvent.change(inputs[0], { target: { value: "react" } });
-    fireEvent.change(inputs[1], { target: { value: "preact" } });
+    await user.type(inputs[0], "react");
+    await user.type(inputs[1], "preact");
 
     expect(compareButton).toBeEnabled();
   });
 
-  it("shows error for duplicate package names", () => {
+  it("shows error for duplicate package names", async () => {
+    const user = userEvent.setup();
     render(<PackageInput onCompare={() => {}} />);
 
     const inputs = screen.getAllByPlaceholderText("e.g., react");
 
-    fireEvent.change(inputs[0], { target: { value: "react" } });
-    fireEvent.change(inputs[1], { target: { value: "react" } });
+    await user.type(inputs[0], "react");
+    await user.type(inputs[1], "react");
 
     expect(
       screen.getByText(/please enter unique package names/i),
     ).toBeInTheDocument();
   });
 
-  it("calls onCompare with array of package names", () => {
+  it("calls onCompare with array of package names", async () => {
+    const user = userEvent.setup();
     const handleCompare = () => {};
     const mockCompare = vi.fn(handleCompare);
 
@@ -122,28 +132,30 @@ describe("PackageInput", () => {
     const inputs = screen.getAllByPlaceholderText("e.g., react");
     const compareButton = screen.getByRole("button", { name: /compare/i });
 
-    fireEvent.change(inputs[0], { target: { value: "react" } });
-    fireEvent.change(inputs[1], { target: { value: "preact" } });
-    fireEvent.click(compareButton);
+    await user.type(inputs[0], "react");
+    await user.type(inputs[1], "preact");
+    await user.click(compareButton);
 
     expect(mockCompare).toHaveBeenCalledWith(["react", "preact"]);
   });
 
   // Autocomplete-specific tests
   describe("autocomplete", () => {
-    it("allows typing in autocomplete inputs", () => {
+    it("allows typing in autocomplete inputs", async () => {
+      const user = userEvent.setup();
       render(<PackageInput onCompare={() => {}} />);
 
       const inputs = screen.getAllByPlaceholderText("e.g., react");
 
-      fireEvent.change(inputs[0], { target: { value: "react" } });
-      fireEvent.change(inputs[1], { target: { value: "vue" } });
+      await user.type(inputs[0], "react");
+      await user.type(inputs[1], "vue");
 
       expect(inputs[0]).toHaveValue("react");
       expect(inputs[1]).toHaveValue("vue");
     });
 
-    it("submits comparison with autocomplete values", () => {
+    it("submits comparison with autocomplete values", async () => {
+      const user = userEvent.setup();
       const handleCompare = vi.fn();
 
       render(<PackageInput onCompare={handleCompare} />);
@@ -151,10 +163,10 @@ describe("PackageInput", () => {
       const inputs = screen.getAllByPlaceholderText("e.g., react");
       const compareButton = screen.getByRole("button", { name: /compare/i });
 
-      fireEvent.change(inputs[0], { target: { value: "custom-package" } });
-      fireEvent.change(inputs[1], { target: { value: "another-package" } });
+      await user.type(inputs[0], "custom-package");
+      await user.type(inputs[1], "another-package");
 
-      fireEvent.click(compareButton);
+      await user.click(compareButton);
 
       expect(handleCompare).toHaveBeenCalledWith([
         "custom-package",
@@ -162,7 +174,8 @@ describe("PackageInput", () => {
       ]);
     });
 
-    it("handles special characters in package names", () => {
+    it("handles special characters in package names", async () => {
+      const user = userEvent.setup();
       const handleCompare = vi.fn();
 
       render(<PackageInput onCompare={handleCompare} />);
@@ -170,10 +183,10 @@ describe("PackageInput", () => {
       const inputs = screen.getAllByPlaceholderText("e.g., react");
       const compareButton = screen.getByRole("button", { name: /compare/i });
 
-      fireEvent.change(inputs[0], { target: { value: "@scoped/package" } });
-      fireEvent.change(inputs[1], { target: { value: "package-name" } });
+      await user.type(inputs[0], "@scoped/package");
+      await user.type(inputs[1], "package-name");
 
-      fireEvent.click(compareButton);
+      await user.click(compareButton);
 
       expect(handleCompare).toHaveBeenCalledWith([
         "@scoped/package",
@@ -181,7 +194,8 @@ describe("PackageInput", () => {
       ]);
     });
 
-    it("maintains autocomplete functionality when adding/removing inputs", () => {
+    it("maintains autocomplete functionality when adding/removing inputs", async () => {
+      const user = userEvent.setup();
       render(<PackageInput onCompare={() => {}} />);
 
       const inputs = screen.getAllByPlaceholderText("e.g., react");
@@ -189,13 +203,13 @@ describe("PackageInput", () => {
 
       // Add a third input
       const addButton = screen.getByRole("button", { name: /\+ add package/i });
-      fireEvent.click(addButton);
+      await user.click(addButton);
 
       const newInputs = screen.getAllByPlaceholderText("e.g., react");
       expect(newInputs).toHaveLength(3);
 
       // Type in the new input
-      fireEvent.change(newInputs[2], { target: { value: "third-package" } });
+      await user.type(newInputs[2], "third-package");
       expect(newInputs[2]).toHaveValue("third-package");
     });
   });
