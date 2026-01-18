@@ -1,3 +1,20 @@
+# [1.10.0](https://github.com/ExaDev/pickage/compare/v1.9.0...v1.10.0) (2026-01-18)
+
+### Bug Fixes
+
+- **pypi:** preserve user input case for package name lookup ([fe28800](https://github.com/ExaDev/pickage/commit/fe28800acf2cc0c61c5ed11b6bc76bab82eb83cc))
+- **pypi:** use case-insensitive matching for package data lookup ([9736990](https://github.com/ExaDev/pickage/commit/97369909473982ffc4c1154a9b0d28b26b1a096c))
+- **ui:** display canonical package name in column headers ([23387fd](https://github.com/ExaDev/pickage/commit/23387fdc1ea4cb43195bc71dbfa64bb37a0574f7))
+
+### Features
+
+- **carousel:** implement dynamic grid layout for ecosystem-specific sections ([0a73c6c](https://github.com/ExaDev/pickage/commit/0a73c6c770ee453c82c44c00c4d77033c70a3044))
+- **metrics:** add conditional rendering for npm and PyPI registry sections ([190fa34](https://github.com/ExaDev/pickage/commit/190fa343228110efd55b0dcff2fe730dddbb57cf))
+- **pypi:** add PyPI-specific stats interface and adapter support ([866ed92](https://github.com/ExaDev/pickage/commit/866ed92923b9c612f0e5709652be09e430d67c27))
+- **pypi:** add PyPIRegistrySection component ([c65dda3](https://github.com/ExaDev/pickage/commit/c65dda3c76510ec930b2be7d5695793d419c17aa))
+- **pypi:** normalize URL to use canonical PyPI package names ([78f5549](https://github.com/ExaDev/pickage/commit/78f5549442fcd70cfe247cfb2f51adc43d65b060))
+- **table:** add dynamic metrics generation for ecosystem-specific data ([435dca5](https://github.com/ExaDev/pickage/commit/435dca58d28e321d6b3f72f5e33b1008a8bd0892))
+
 # [1.9.0](https://github.com/ExaDev/pickage/compare/v1.8.2...v1.9.0) (2026-01-18)
 
 ### Features
