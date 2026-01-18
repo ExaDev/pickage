@@ -114,7 +114,7 @@ export class PyPiAdapter implements EcosystemAdapter {
     };
 
     const stats: PackageStats = {
-      name: info.name || request.packageName,
+      name: request.packageName, // Preserve user's input for lookup consistency
       description: info.summary || null,
       version: info.version || "unknown",
       homepage,
