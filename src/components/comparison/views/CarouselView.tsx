@@ -5,12 +5,14 @@ import {
   NpmsScoresSection,
   ComparisonResultsSection,
   NpmRegistrySection,
+  PyPIRegistrySection,
   GitHubSection,
   ReadmeSection,
 } from "../sections";
 import { SortSidebar } from "../SortSidebar";
 import type { WinnerMetrics } from "../sections/types";
 import type { ViewProps } from "./types";
+import type { PackageStats } from "@/types/adapter";
 
 const MOBILE_BREAKPOINT = 1024;
 
@@ -61,6 +63,17 @@ const GRID_ROWS = {
     author: 1,
     maintainers: 1,
   },
+  // PyPI Registry section rows
+  pypi: {
+    title: 1,
+    requiresPython: 1,
+    license: 1,
+    dependencies: 1,
+    uploads: 1,
+    lastUpload: 1,
+    author: 1,
+    classifiers: 1,
+  },
   // GitHub section rows
   github: {
     title: 1,
@@ -84,30 +97,50 @@ const SECTION_ROW_COUNTS = {
   scores: Object.keys(GRID_ROWS.scores).length,
   comparison: Object.keys(GRID_ROWS.comparison).length,
   npm: Object.keys(GRID_ROWS.npm).length,
+  pypi: Object.keys(GRID_ROWS.pypi).length,
   github: Object.keys(GRID_ROWS.github).length,
 };
 
-const TOTAL_ROWS = Object.values(SECTION_ROW_COUNTS).reduce((a, b) => a + b, 0);
+/**
+ * Calculate section positions dynamically based on package data.
+ * Each package column may have different sections (npm, pypi, or both).
+ */
+function calculateSectionPositions(packageStats: PackageStats | null) {
+  const positions: Record<string, number> = {
+    header: 1,
+  };
 
-// Calculate starting row for each section (README not included - outside grid)
-const SECTION_START_ROWS = {
-  header: 1,
-  scores: 1 + SECTION_ROW_COUNTS.header,
-  comparison: 1 + SECTION_ROW_COUNTS.header + SECTION_ROW_COUNTS.scores,
-  npm:
-    1 +
-    SECTION_ROW_COUNTS.header +
-    SECTION_ROW_COUNTS.scores +
-    SECTION_ROW_COUNTS.comparison,
-  github:
-    1 +
-    SECTION_ROW_COUNTS.header +
-    SECTION_ROW_COUNTS.scores +
-    SECTION_ROW_COUNTS.comparison +
-    SECTION_ROW_COUNTS.npm,
-};
+  let currentRow = 1 + SECTION_ROW_COUNTS.header;
 
-// Export row counts for use by section components
+  // Scores section (shown only if package has evaluation scores)
+  if (packageStats?.evaluation) {
+    positions.scores = currentRow;
+    currentRow += SECTION_ROW_COUNTS.scores;
+  }
+
+  // Comparison section (always shown)
+  positions.comparison = currentRow;
+  currentRow += SECTION_ROW_COUNTS.comparison;
+
+  // npm Registry section (conditional)
+  if (packageStats?.npm) {
+    positions.npm = currentRow;
+    currentRow += SECTION_ROW_COUNTS.npm;
+  }
+
+  // PyPI Registry section (conditional)
+  if (packageStats?.pypi) {
+    positions.pypi = currentRow;
+    currentRow += SECTION_ROW_COUNTS.pypi;
+  }
+
+  // GitHub section (always shown)
+  positions.github = currentRow;
+
+  return positions;
+}
+
+// Export for use by section components
 export { SECTION_ROW_COUNTS };
 
 /**
@@ -130,6 +163,16 @@ export function CarouselView({
 }: ViewProps) {
   const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
   const columnCount = packages.length;
+
+  // Calculate total rows needed - maximum across all packages
+  const TOTAL_ROWS = Math.max(
+    ...packagesData.map((stats) => {
+      const positions = calculateSectionPositions(stats);
+      return positions.github + SECTION_ROW_COUNTS.github;
+    }),
+    // Minimum: header + comparison + github (for packages with no data yet)
+    1 + SECTION_ROW_COUNTS.header + SECTION_ROW_COUNTS.comparison + SECTION_ROW_COUNTS.github
+  );
 
   const columnWidth = isMobile ? 320 : 450;
   const sidebarWidth = 48;
@@ -190,6 +233,9 @@ export function CarouselView({
             // On mobile: no sidebar, packages start at column 1; on desktop: column 1 is sidebar, packages start at column 2
             const col = isMobile ? colIndex + 1 : colIndex + 2;
 
+            // Calculate section positions for this specific package
+            const sectionPositions = calculateSectionPositions(packageStats);
+
             return (
               <Card
                 key={pkg.id}
@@ -206,7 +252,7 @@ export function CarouselView({
                 {/* Header Section */}
                 <Box
                   style={{
-                    gridRow: `${String(SECTION_START_ROWS.header)} / span ${String(SECTION_ROW_COUNTS.header)}`,
+                    gridRow: `${String(sectionPositions.header)} / span ${String(SECTION_ROW_COUNTS.header)}`,
                     display: "grid",
                     gridTemplateRows: "subgrid",
                   }}
@@ -224,24 +270,27 @@ export function CarouselView({
                 </Box>
 
                 {/* Scores Section */}
-                <Box
-                  style={{
-                    gridRow: `${String(SECTION_START_ROWS.scores)} / span ${String(SECTION_ROW_COUNTS.scores)}`,
-                    display: "grid",
-                    gridTemplateRows: "subgrid",
-                  }}
-                >
-                  <NpmsScoresSection
-                    packageStats={packageStats}
-                    isLoading={isLoading}
-                    rowCount={SECTION_ROW_COUNTS.scores}
-                  />
-                </Box>
+                {/* npms.io Scores Section (npm only) */}
+                {packageStats?.evaluation && (
+                  <Box
+                    style={{
+                      gridRow: `${String(sectionPositions.scores)} / span ${String(SECTION_ROW_COUNTS.scores)}`,
+                      display: "grid",
+                      gridTemplateRows: "subgrid",
+                    }}
+                  >
+                    <NpmsScoresSection
+                      packageStats={packageStats}
+                      isLoading={isLoading}
+                      rowCount={SECTION_ROW_COUNTS.scores}
+                    />
+                  </Box>
+                )}
 
                 {/* Comparison Section */}
                 <Box
                   style={{
-                    gridRow: `${String(SECTION_START_ROWS.comparison)} / span ${String(SECTION_ROW_COUNTS.comparison)}`,
+                    gridRow: `${String(sectionPositions.comparison)} / span ${String(SECTION_ROW_COUNTS.comparison)}`,
                     display: "grid",
                     gridTemplateRows: "subgrid",
                   }}
@@ -253,28 +302,47 @@ export function CarouselView({
                 </Box>
 
                 {/* npm Registry Section */}
-                <Box
-                  style={{
-                    gridRow: `${String(SECTION_START_ROWS.npm)} / span ${String(SECTION_ROW_COUNTS.npm)}`,
-                    display: "grid",
-                    gridTemplateRows: "subgrid",
-                  }}
-                >
-                  <NpmRegistrySection
-                    packageStats={packageStats}
-                    isLoading={isLoading}
-                    isRefetchingNpm={refetchingNpmPackages[pkg.packageName]}
-                    onRefreshNpm={() => {
-                      onRefreshNpm(pkg.packageName);
+                {packageStats?.npm && (
+                  <Box
+                    style={{
+                      gridRow: `${String(sectionPositions.npm)} / span ${String(SECTION_ROW_COUNTS.npm)}`,
+                      display: "grid",
+                      gridTemplateRows: "subgrid",
                     }}
-                    rowCount={SECTION_ROW_COUNTS.npm}
-                  />
-                </Box>
+                  >
+                    <NpmRegistrySection
+                      packageStats={packageStats}
+                      isLoading={isLoading}
+                      isRefetchingNpm={refetchingNpmPackages[pkg.packageName]}
+                      onRefreshNpm={() => {
+                        onRefreshNpm(pkg.packageName);
+                      }}
+                      rowCount={SECTION_ROW_COUNTS.npm}
+                    />
+                  </Box>
+                )}
+
+                {/* PyPI Registry Section */}
+                {packageStats?.pypi && (
+                  <Box
+                    style={{
+                      gridRow: `${String(sectionPositions.pypi)} / span ${String(SECTION_ROW_COUNTS.pypi)}`,
+                      display: "grid",
+                      gridTemplateRows: "subgrid",
+                    }}
+                  >
+                    <PyPIRegistrySection
+                      packageStats={packageStats}
+                      isLoading={isLoading}
+                      rowCount={SECTION_ROW_COUNTS.pypi}
+                    />
+                  </Box>
+                )}
 
                 {/* GitHub Section */}
                 <Box
                   style={{
-                    gridRow: `${String(SECTION_START_ROWS.github)} / span ${String(SECTION_ROW_COUNTS.github)}`,
+                    gridRow: `${String(sectionPositions.github)} / span ${String(SECTION_ROW_COUNTS.github)}`,
                     display: "grid",
                     gridTemplateRows: "subgrid",
                   }}
