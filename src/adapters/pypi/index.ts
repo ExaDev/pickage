@@ -72,8 +72,11 @@ export class PyPiAdapter implements EcosystemAdapter {
         null;
 
       // Use Homepage from project_urls if not set
-      if (!homepage && info.project_urls["Homepage"]) {
-        homepage = info.project_urls["Homepage"];
+      if (!homepage) {
+        homepage =
+          info.project_urls["Homepage"] ||
+          info.project_urls["homepage"] ||
+          null;
       }
     }
 
@@ -120,7 +123,9 @@ export class PyPiAdapter implements EcosystemAdapter {
         if (
           ![
             "Homepage",
+            "homepage",
             "Source",
+            "source",
             "Source Code",
             "Repository",
             "repository",
@@ -135,7 +140,8 @@ export class PyPiAdapter implements EcosystemAdapter {
     const pypiStats: PyPiSpecificStats = {
       requiresPython: info.requires_python || null,
       dependencies,
-      license: info.license || null,
+      // Prefer license_expression (SPDX format) over license (can be full text)
+      license: info.license_expression || info.license || null,
       classifiers: info.classifiers || [],
       uploads: Object.keys(releases).length,
       upload_time: latestUpload,

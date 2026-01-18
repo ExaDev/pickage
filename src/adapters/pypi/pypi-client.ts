@@ -28,6 +28,7 @@ export interface PyPiPackageData {
     maintainer: string | null;
     maintainer_email: string | null;
     license: string | null;
+    license_expression: string | null;
     keywords: string | null;
     platform: string | null;
     project_urls: Record<string, string> | null;
