@@ -95,18 +95,20 @@ const SECTION_ROW_COUNTS = {
 };
 
 /**
- * Calculate section positions dynamically based on package data.
- * Unified registry section always shown for alignment across ecosystems.
+ * Calculate section positions for ALL packages.
+ * All packages use the same positions regardless of whether they have data.
+ * Sections reserve space even if a specific package doesn't have that data.
  */
-function calculateSectionPositions(packageStats: PackageStats | null) {
+function calculateSectionPositions(packagesData: PackageStats[]) {
   const positions: Record<string, number> = {
     header: 1,
   };
 
   let currentRow = 1 + SECTION_ROW_COUNTS.header;
 
-  // Scores section (shown only if package has evaluation scores)
-  if (packageStats?.evaluation) {
+  // Scores section - reserve space if ANY package has scores
+  const hasAnyScores = packagesData.some((pkg) => pkg.evaluation);
+  if (hasAnyScores) {
     positions.scores = currentRow;
     currentRow += SECTION_ROW_COUNTS.scores;
   }
@@ -115,7 +117,7 @@ function calculateSectionPositions(packageStats: PackageStats | null) {
   positions.comparison = currentRow;
   currentRow += SECTION_ROW_COUNTS.comparison;
 
-  // Unified Registry section (always shown - ecosystem-specific rows conditionally render)
+  // Unified Registry section (always shown)
   positions.registry = currentRow;
   currentRow += SECTION_ROW_COUNTS.registry;
 
@@ -149,18 +151,11 @@ export function CarouselView({
   const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
   const columnCount = packages.length;
 
-  // Calculate total rows needed - maximum across all packages
-  const TOTAL_ROWS = Math.max(
-    ...packagesData.map((stats) => {
-      const positions = calculateSectionPositions(stats);
-      return positions.github + SECTION_ROW_COUNTS.github;
-    }),
-    // Minimum: header + comparison + github (for packages with no data yet)
-    1 +
-      SECTION_ROW_COUNTS.header +
-      SECTION_ROW_COUNTS.comparison +
-      SECTION_ROW_COUNTS.github,
-  );
+  // Calculate section positions ONCE for all packages
+  const sectionPositions = calculateSectionPositions(packagesData);
+
+  // Calculate total rows needed
+  const TOTAL_ROWS = sectionPositions.github + SECTION_ROW_COUNTS.github;
 
   const columnWidth = isMobile ? 320 : 450;
   const sidebarWidth = 48;
@@ -223,9 +218,6 @@ export function CarouselView({
             // On mobile: no sidebar, packages start at column 1; on desktop: column 1 is sidebar, packages start at column 2
             const col = isMobile ? colIndex + 1 : colIndex + 2;
 
-            // Calculate section positions for this specific package
-            const sectionPositions = calculateSectionPositions(packageStats);
-
             return (
               <Card
                 key={pkg.id}
@@ -260,8 +252,8 @@ export function CarouselView({
                 </Box>
 
                 {/* Scores Section */}
-                {/* npms.io Scores Section (npm only) */}
-                {packageStats?.evaluation && (
+                {/* npms.io Scores Section (npm only) - always render to maintain grid alignment */}
+                {sectionPositions.scores && (
                   <Box
                     style={{
                       gridRow: `${String(sectionPositions.scores)} / span ${String(SECTION_ROW_COUNTS.scores)}`,
@@ -269,11 +261,16 @@ export function CarouselView({
                       gridTemplateRows: "subgrid",
                     }}
                   >
-                    <NpmsScoresSection
-                      packageStats={packageStats}
-                      isLoading={isLoading}
-                      rowCount={SECTION_ROW_COUNTS.scores}
-                    />
+                    {packageStats?.evaluation ? (
+                      <NpmsScoresSection
+                        packageStats={packageStats}
+                        isLoading={isLoading}
+                        rowCount={SECTION_ROW_COUNTS.scores}
+                      />
+                    ) : (
+                      // Empty placeholder to maintain grid structure
+                      <Box />
+                    )}
                   </Box>
                 )}
 
@@ -306,6 +303,7 @@ export function CarouselView({
                     onRefreshNpm={() => {
                       onRefreshNpm(pkg.packageName);
                     }}
+                    rowCount={SECTION_ROW_COUNTS.registry}
                   />
                 </Box>
 
