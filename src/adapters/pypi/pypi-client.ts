@@ -27,6 +27,8 @@ export interface PyPiPackageData {
     license: string | null;
     project_urls: Record<string, string> | null;
     requires_dist: string[] | null;
+    requires_python: string | null;
+    classifiers: string[] | null;
   };
   releases: Record<string, Array<{ upload_time_iso_8601: string }>>;
   urls: Array<{

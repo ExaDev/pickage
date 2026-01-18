@@ -55,6 +55,7 @@ export interface PackageStats {
   // Links
   links?: {
     npm?: string;
+    pypi?: string;
     homepage?: string | null;
     repository?: string | null;
     bugs?: string | null;
@@ -85,6 +86,7 @@ export interface PackageStats {
   // Ecosystem-specific extensions
   npm?: NpmSpecificStats;
   github?: GithubSpecificStats;
+  pypi?: PyPiSpecificStats;
 }
 
 /**
@@ -119,6 +121,18 @@ export interface GithubSpecificStats {
   homepageUrl?: string;
   language?: string | null;
   size?: number;
+}
+
+/**
+ * PyPI-specific statistics
+ */
+export interface PyPiSpecificStats {
+  requiresPython: string | null;
+  dependencies: string[];
+  license: string | null;
+  classifiers: string[];
+  uploads: number;
+  upload_time: string | null;
 }
 
 /**

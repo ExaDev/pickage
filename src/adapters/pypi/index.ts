@@ -2,6 +2,7 @@ import type {
   EcosystemAdapter,
   PickageRequest,
   PackageStats,
+  PyPiSpecificStats,
 } from "@/types/adapter";
 import { PyPiClient } from "./pypi-client";
 
@@ -96,6 +97,22 @@ export class PyPiAdapter implements EcosystemAdapter {
       }
     }
 
+    // Get the latest upload time
+    const latestUpload =
+      packageData.urls.length > 0
+        ? packageData.urls[0].upload_time_iso_8601
+        : null;
+
+    // PyPI-specific stats
+    const pypiStats: PyPiSpecificStats = {
+      requiresPython: info.requires_python || null,
+      dependencies,
+      license: info.license || null,
+      classifiers: info.classifiers || [],
+      uploads: Object.keys(releases).length,
+      upload_time: latestUpload,
+    };
+
     const stats: PackageStats = {
       name: info.name || request.packageName,
       description: info.summary || null,
@@ -113,12 +130,18 @@ export class PyPiAdapter implements EcosystemAdapter {
           ? { name: info.author }
           : null,
       links: {
+        pypi: `https://pypi.org/project/${info.name || request.packageName}/`,
         homepage,
         repository,
         bugs: repository ? `${repository}/issues` : null,
       },
+      pypi: pypiStats,
     };
 
+    console.log(
+      "[PyPI Adapter] Returning stats:",
+      JSON.stringify(stats, null, 2),
+    );
     return stats;
   }
 

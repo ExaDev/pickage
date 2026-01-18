@@ -61,7 +61,7 @@ export function usePackageComparison(packages: PackageRequest[]) {
   // Fetch package data (from appropriate ecosystem) for all packages
   const packageResults = useQueries({
     queries: packages.map((pkg) => ({
-      queryKey: cacheKeys.package(pkg.packageName),
+      queryKey: cacheKeys.package(pkg.packageName, pkg.ecosystem),
       queryFn: async () => {
         const request: PickageRequest = {
           packageName: pkg.packageName,
@@ -174,6 +174,11 @@ export function usePackageComparison(packages: PackageRequest[]) {
               subscribers: packageData.githubFromNpms.subscribers,
             };
           }
+        }
+
+        // Add pypi-specific data
+        if ("pypi" in packageData && packageData.pypi) {
+          stats.pypi = packageData.pypi;
         }
 
         return stats;
