@@ -1,3 +1,11 @@
+# [1.9.0](https://github.com/ExaDev/pickage/compare/v1.8.2...v1.9.0) (2026-01-18)
+
+### Features
+
+- add dual-dataset PyPI packages client with Fuse.js fuzzy search ([bd4c7da](https://github.com/ExaDev/pickage/commit/bd4c7daef028f73bf4d2b72cd26103b7429711b8))
+- add explicit ecosystem support to usePackageComparison ([9ae21fa](https://github.com/ExaDev/pickage/commit/9ae21fa8095739bf66d10cdc6558d32b00930dbb))
+- add React Query hooks for PyPI dual-dataset management with prefetch ([352ff12](https://github.com/ExaDev/pickage/commit/352ff12552d015352e0444e67e5df2b265822833))
+
 ## [1.8.2](https://github.com/ExaDev/pickage/compare/v1.8.1...v1.8.2) (2026-01-18)
 
 ### Bug Fixes
