@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/ExaDev/pickage/compare/v1.8.0...v1.8.1) (2026-01-18)
+
+### Bug Fixes
+
+- Add type assertion for ecosystem detection in URL parsing ([1d71084](https://github.com/ExaDev/pickage/commit/1d7108491ac69897dba91d1cf83322d55884cf6e))
+- Preserve ecosystem information in URL parameters for multi-ecosystem support ([3b5a2ae](https://github.com/ExaDev/pickage/commit/3b5a2aef3b91dd516d4974532561ed6f3e26770c))
+
 # [1.8.0](https://github.com/ExaDev/pickage/compare/v1.7.0...v1.8.0) (2026-01-18)
 
 ### Bug Fixes
